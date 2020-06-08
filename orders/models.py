@@ -1,10 +1,24 @@
 from django.db import models
+from django.utils import timezone
+import random
+
+def TMP_ID():
+    tmpid = str(random.random())[3:8];
+    return tmpid
+
 
 class ItemType(models.Model):
     name = models.CharField(max_length=64)
 
     def __str__(self):
         return f"{self.name}"
+
+class TmpOrder(models.Model):
+    user_id = models.IntegerField(default=None)
+    order_date = models.DateTimeField(default=timezone.now, blank=True)
+    order_id = models.CharField(max_length=64, default=TMP_ID())
+    def __str__(self):
+        return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}"
 
 
 class Item(models.Model):
@@ -19,9 +33,10 @@ class Item(models.Model):
 
 class Order(models.Model):
     user_id = models.IntegerField(default=None)
+    order_date = models.DateTimeField(default=timezone.now, blank=True)
 
     def __str__(self):
-        return f"{self.user_id}"
+        return f"{self.user_id} {self.order_date}"
 
 class Toppings(models.Model):
     itemtype = models.ForeignKey(ItemType, on_delete=models.CASCADE, related_name="toppingtype")

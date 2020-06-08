@@ -4,11 +4,32 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Item
+from .models import ItemType, Item, Order, TmpOrder, OrderItem, Toppings, TMP_ID
 
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
-        a = request.POST.get("item_pk", None) + ' ' + request.POST.get("size", None)
+        try:
+            item_pk = int(request.POST["item_pk"])
+            add_item = Item.objects.get(pk=item_pk)
+        except KeyError:
+            return render(request, "orders/error.html", {"message": "No selection"})
+        except Item.DoesNotExist:
+            return render(request, "orders/error.html", {"message": "No item"})
+        if request.user.is_authenticated:
+            useridfororder = request.user.pk
+        else:
+            useridfororder = request.POST["temp_id"]
+        if not TmpOrder.objects.filter(user_id=useridfororder):
+            tmp_order_record = TmpOrder(user_id = useridfororder)
+            tmp_order_record.save()
+            tmp_order_id = tmp_order_record.order_id
+        else:
+            tmp_order = TmpOrder.objects.filter(user_id=useridfororder).order_id
+            tmp_order_id = tmp_order.order_id
+        new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  request.POST["size"], user_id =useridfororder, order_id = tmp_order_id)
+        new_order_item.save()
+        a = request.POST.get("item_pk", None) + ' ' + request.POST.get("size", None) + ' ' + request.POST.get("temp_id", None)
+
         return JsonResponse({"result": a, "status":"OK"}, status=200)
     else:
         return JsonResponse({"error": "BOO"}, status=400)
