@@ -1,0 +1,25 @@
+nav .navbar-brand
+{
+    font-size: xx-large;
+}
+
+img.logo
+{
+    width:64px;
+    padding:5px;
+}
+
+img.gear
+{
+  width: 24px;
+  height: 24px;
+}
+
+ #a_l:hover
+ {
+   text-decoration: none;
+ }
+
+ #order_list{
+      overflow: scroll;
+ }

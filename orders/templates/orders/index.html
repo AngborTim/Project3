@@ -1,0 +1,111 @@
+{% extends "orders/base.html" %}
+{% block title %}Pizza Houzze{% endblock %}
+
+{% block main %}
+<main class="container-fluid" style="position: fixed;">
+<div class="row">
+  <div class="col-8" id="extra_nav">
+    <div>
+      <h4 class="text-center">Hello and welcome, dear {% if user == 'none' %}Guest{% else %} {{user.username}}{% endif %}!</h4>
+      <h5 class="text-center">How would you like to feast today?</h5>
+    </div>
+  </div>
+  <div class="col-4">
+    <div>
+      <nav class="navbar navbar-expand-lg">
+        <span class="navbar-brand p-2" id="order_header">Shopping cart</span>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="row">
+        <div id="scrl" class="col-8" style="overflow: scroll;">
+        <table class="table table-bordered table-hover" style="width:90%;">
+          {% for key, pza in allpizza.items %}
+          <tr>
+            <th id='{{ key|cut:" " }}' scope="col" class="text-center bg-info" colspan="3">{{ key }}</th>
+          </tr>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">Small</th>
+            <th scope="col">Large</th>
+          </tr>
+            {% for piz in pza %}
+            <tr>
+              <td>{{piz.name}}</td>
+              <td>
+                <div class="d-flex justify-content-between">{{piz.priceSmall}}
+                  <button type="button" data-item_pk="{{piz.pk}}" data-item_size="small" class="btn_add badge badge-primary badge-pill">Add</button>
+                </div>
+              </td>
+              <td>
+                <div class="d-flex justify-content-between">{{piz.priceLarge}}
+                  <button type="button" data-item_pk="{{piz.pk}}" data-item_size="large" class="btn_add badge badge-primary badge-pill">Add</button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% endfor%}
+
+          {% for key, s_p in salads_pasta.items %}
+          <tr>
+            <th id='{{ key|cut:" " }}' scope="col" class="text-center bg-info" colspan="3">{{ key }}</th>
+          </tr>
+            {% for sal_pas in s_p %}
+            <tr>
+              <td colspan="2">{{sal_pas.name}}</td>
+              <td>
+                <div class="d-flex justify-content-between">{{sal_pas.priceSmall}}
+                  <button type="button" data-item_pk="{{sal_pas.pk}}" data-item_size="small" class="btn_add badge badge-primary badge-pill">Add</button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% endfor%}
+        </table>
+      </div>
+
+      <div class="col-4" id="order_list">
+        <table class="table table-sm" id="order_t">
+
+        </table>
+
+      </div>
+  </div>
+</main>
+
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.btn_add').forEach(btn_add => {
+      btn_add.onclick = () => {
+        let item_pk = btn_add.dataset.item_pk;
+        let size = btn_add.dataset.item_size;
+        let csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+        $.post("{% url 'add_to_cart' %}", {
+          item_pk: item_pk,
+          size: size,
+          csrfmiddlewaretoken: csrftoken } )
+          .done(function( data ) {
+
+            // все получилось
+            if (data['status'] == "OK"){
+              var cart = document.getElementById('order_t');
+              var item_tr = document.createElement("tr");
+              var item_td = document.createElement("td");
+              var new_item = document.createTextNode(data['result']);
+              item_td.appendChild(new_item);
+              item_tr.appendChild(item_td);
+              cart.appendChild(item_tr);
+            }
+            else {
+              alert('oblom');
+            }
+
+        })
+      };
+    });
+});
+</script>
+{% endblock %}

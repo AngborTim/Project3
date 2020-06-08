@@ -1,0 +1,39 @@
+{% extends "orders/base.html" %}
+{% block title %}Pizza Houzze{% endblock %}
+
+{% block main %}
+<main class="container-fluid">
+  <h1>CABINET</h1>
+
+<ul class="nav nav-tabs" id="cabinet_tabs" role="tablist">
+  {% if not user.is_staff %}
+  <li class="nav-item" role="presentation">
+    <a class="nav-link active" id="cart_tab" data-toggle="tab" href="#cart" role="tab">Cart</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="orders_tab" data-toggle="tab" href="#orders" role="tab">Orders</a>
+  </li>
+  {% endif %}
+  <li class="nav-item" role="presentation">
+    <a class="nav-link{% if user.is_staff %} active{% endif %}" id="user_info-tab" data-toggle="tab" href="#user_info" role="tab">User info</a>
+  </li>
+  {% if user.is_staff %}
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" role="tab">Administrations</a>
+  </li>
+  {% endif %}
+</ul>
+<div class="tab-content" id="myTabContent">
+  {% if not user.is_staff %}
+  <div class="tab-pane fade show active" id="cart" role="tabpanel">CART</div>
+  <div class="tab-pane fade" id="orders" role="tabpanel">ORDERS</div>
+  {% endif %}
+  <div class="tab-pane fade{% if user.is_staff %} show active{% endif %}" id="user_info" role="tabpanel">USER INFO</div>
+  {% if user.is_staff %}
+  <div class="tab-pane fade" id="admin" role="tabpanel">ADMIN</div>
+  {% endif %}
+</div>
+
+
+</main>
+{% endblock %}
