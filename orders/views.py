@@ -16,17 +16,15 @@ def add_to_cart_view(request):
         except Item.DoesNotExist:
             return render(request, "orders/error.html", {"message": "No item"})
         if request.user.is_authenticated:
-            useridfororder = request.user.pk
+            useridfororder = str(request.user.pk)
         else:
             useridfororder = request.POST["temp_id"]
         if not TmpOrder.objects.filter(user_id=useridfororder):
             tmp_order_record = TmpOrder(user_id = useridfororder)
             tmp_order_record.save()
-            tmp_order_id = tmp_order_record.order_id
         else:
-            tmp_order = TmpOrder.objects.filter(user_id=useridfororder).order_id
-            tmp_order_id = tmp_order.order_id
-        new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  request.POST["size"], user_id =useridfororder, order_id = tmp_order_id)
+            tmp_order_record = TmpOrder.objects.get(user_id=useridfororder)
+        new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  request.POST["size"], user_id =useridfororder, order_id = tmp_order_record)
         new_order_item.save()
         a = request.POST.get("item_pk", None) + ' ' + request.POST.get("size", None) + ' ' + request.POST.get("temp_id", None)
 

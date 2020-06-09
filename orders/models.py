@@ -14,7 +14,7 @@ class ItemType(models.Model):
         return f"{self.name}"
 
 class TmpOrder(models.Model):
-    user_id = models.IntegerField(default=None)
+    user_id = models.CharField(max_length=64)
     order_date = models.DateTimeField(default=timezone.now, blank=True)
     order_id = models.CharField(max_length=64, default=TMP_ID())
     def __str__(self):
@@ -32,7 +32,7 @@ class Item(models.Model):
         return f"{self.itemtype} {self.name} {self.has_extra_toppings} {self.priceSmall} {self.priceLarge}"
 
 class Order(models.Model):
-    user_id = models.IntegerField(default=None)
+    user_id = models.CharField(max_length=64)
     order_date = models.DateTimeField(default=timezone.now, blank=True)
 
     def __str__(self):
@@ -52,8 +52,8 @@ class OrderItem(models.Model):
     toppings = models.ManyToManyField(Toppings, blank=True, related_name="toppings")
     itemPrice = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     itemSize = models.CharField(max_length=64)
-    user_id = models.IntegerField(default=None)
-    order_id = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="order")
+    user_id = models.CharField(max_length=64)
+    order_id = models.ForeignKey(TmpOrder, on_delete=models.CASCADE, related_name="order")
 
     def __str__(self):
-        return f"{self.item} {self.has_toppings} {self.itemPrice} {self.itemSize} {self.user_id} {self.order_id}"
+        return f"{self.item} {self.toppings} {self.itemPrice} {self.itemSize} {self.user_id} {self.order_id}"
