@@ -1,25 +1,17 @@
 from django.db import models
 from django.utils import timezone
+from django.db.models import Sum
 import random
 
 def TMP_ID():
     tmpid = str(random.random())[3:8];
     return tmpid
 
-
 class ItemType(models.Model):
     name = models.CharField(max_length=64)
 
     def __str__(self):
         return f"{self.name}"
-
-class TmpOrder(models.Model):
-    user_id = models.CharField(max_length=64)
-    order_date = models.DateTimeField(default=timezone.now, blank=True)
-    order_id = models.CharField(max_length=64, default=TMP_ID())
-    def __str__(self):
-        return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}"
-
 
 class Item(models.Model):
     itemtype = models.ForeignKey(ItemType, on_delete=models.CASCADE, related_name="itemtype")
@@ -46,6 +38,13 @@ class Toppings(models.Model):
     def __str__(self):
         return f"{self.itemtype} {self.name} {self.price}"
 
+class TmpOrder(models.Model):
+    user_id = models.CharField(max_length=64)
+    order_date = models.DateTimeField(default=timezone.now, blank=True)
+    order_id = models.CharField(max_length=64, default=TMP_ID())
+    total = OrderItem.objects.all().aggregate(Sum('itemPrice'))
+    def __str__(self):
+        return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}"
 
 class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="item")
@@ -56,4 +55,4 @@ class OrderItem(models.Model):
     order_id = models.ForeignKey(TmpOrder, on_delete=models.CASCADE, related_name="order")
 
     def __str__(self):
-        return f"{self.item} {self.toppings} {self.itemPrice} {self.itemSize} {self.user_id} {self.order_id}"
+        return f"ORDER: {self.order_id.order_id} {self.item} {self.toppings} {self.itemPrice} {self.itemSize} {self.user_id} "

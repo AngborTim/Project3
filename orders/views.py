@@ -26,7 +26,12 @@ def add_to_cart_view(request):
             tmp_order_record = TmpOrder.objects.get(user_id=useridfororder)
         new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  request.POST["size"], user_id =useridfororder, order_id = tmp_order_record)
         new_order_item.save()
-        a = request.POST.get("item_pk", None) + ' ' + request.POST.get("size", None) + ' ' + request.POST.get("temp_id", None)
+        a = {   "type": add_item.itemtype.name,
+                "name": add_item.name,
+                "extratop": add_item.has_extra_toppings,
+                "size": request.POST['size'],
+                "price": request.POST['price']
+            }
 
         return JsonResponse({"result": a, "status":"OK"}, status=200)
     else:

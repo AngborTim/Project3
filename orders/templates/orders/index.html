@@ -58,7 +58,7 @@
               <td colspan="2">{{sal_pas.name}}</td>
               <td>
                 <div class="d-flex justify-content-between">{{sal_pas.priceSmall}}
-                  <button type="button" data-item_pk="{{sal_pas.pk}}" data-item_size="small" class="btn_add badge badge-primary badge-pill">Add</button>
+                  <button type="button" data-item_pk="{{sal_pas.pk}}" data-item_size="small" data-item_price="{{sal_pas.priceSmall}}" class="btn_add badge badge-primary badge-pill">Add</button>
                 </div>
               </td>
             </tr>
@@ -103,9 +103,22 @@
               var cart = document.getElementById('order_t');
               var item_tr = document.createElement("tr");
               var item_td = document.createElement("td");
-              var new_item = document.createTextNode(data['result']);
+              if (data['result'].type == 'Pasta' || data['result'].type ==  'Salads'){
+                var txt = data['result'].type + '"' + data['result'].name + '"';
+              }
+              else if (data['result'].type == 'Sicilian Pizza' || data['result'].type ==  'Regular Pizza'){
+                var txt = data['result'].size[0].toUpperCase() + data['result'].size.slice(1)+ ' "' + data['result'].type+ '" '+ data['result'].name;
+              }
+              else {
+                var txt = data['result'].size[0].toUpperCase() + data['result'].size.slice(1)+ ' "' + data['result'].type+ '"';
+              }
+              var new_item = document.createTextNode( txt );
               item_td.appendChild(new_item);
+              var item_td_price = document.createElement("td");
+              var price_text = document.createTextNode("$" + data['result'].price);
+              item_td_price.appendChild(price_text);
               item_tr.appendChild(item_td);
+              item_tr.appendChild(item_td_price);
               cart.appendChild(item_tr);
             }
             else {
