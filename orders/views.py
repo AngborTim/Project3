@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.db.models import Sum, FloatField
 
-from .models import ItemType, Item, Order, TmpOrder, OrderItem, Toppings, TMP_ID
+from .models import ItemType, Item, Order, TmpOrder, OrderItem, Toppings, TMP_ID, Size
 
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
@@ -24,8 +25,10 @@ def add_to_cart_view(request):
             tmp_order_record.save()
         else:
             tmp_order_record = TmpOrder.objects.get(user_id=useridfororder)
-        new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  request.POST["size"], user_id =useridfororder, order_id = tmp_order_record)
+        new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  Size.objects.get(pk=int(request.POST["size"])), user_id =useridfororder, order_id = tmp_order_record)
         new_order_item.save()
+        summm = OrderItem.objects.filter(order_id=tmp_order_record).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
+        print (f"{summm}")
         a = {   "type": add_item.itemtype.name,
                 "name": add_item.name,
                 "extratop": add_item.has_extra_toppings,
@@ -38,6 +41,10 @@ def add_to_cart_view(request):
         return JsonResponse({"error": "BOO"}, status=400)
 
 def index(request):
+    if request.session.get('tmp_id', False):
+        print (f'no session')
+    else:
+        print (f"{request.session.get('tmp_id')}")
     allpizza = {
         "Regular Pizza"  : Item.objects.filter(itemtype__name='Regular Pizza'),
         "Sicilian Pizza" : Item.objects.filter(itemtype__name='Sicilian Pizza'),

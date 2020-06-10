@@ -42,15 +42,22 @@ class TmpOrder(models.Model):
     user_id = models.CharField(max_length=64)
     order_date = models.DateTimeField(default=timezone.now, blank=True)
     order_id = models.CharField(max_length=64, default=TMP_ID())
-    total = OrderItem.objects.all().aggregate(Sum('itemPrice'))
+    orderitem = models.ManyToManyField('OrderItem',  blank=True, related_name="items")
+
     def __str__(self):
         return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}"
+
+class Size(models.Model):
+    sizeName = models.CharField(max_length=64)
+
+    def __str__(self):
+        return f"{self.sizeName}"
 
 class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="item")
     toppings = models.ManyToManyField(Toppings, blank=True, related_name="toppings")
     itemPrice = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
-    itemSize = models.CharField(max_length=64)
+    itemSize = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="size")
     user_id = models.CharField(max_length=64)
     order_id = models.ForeignKey(TmpOrder, on_delete=models.CASCADE, related_name="order")
 
