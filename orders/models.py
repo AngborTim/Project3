@@ -38,15 +38,6 @@ class Toppings(models.Model):
     def __str__(self):
         return f"{self.itemtype} {self.name} {self.price}"
 
-class TmpOrder(models.Model):
-    user_id = models.CharField(max_length=64)
-    order_date = models.DateTimeField(default=timezone.now, blank=True)
-    order_id = models.CharField(max_length=64, default=TMP_ID())
-    orderitem = models.ManyToManyField('OrderItem',  blank=True, related_name="items")
-
-    def __str__(self):
-        return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}"
-
 class Size(models.Model):
     sizeName = models.CharField(max_length=64)
 
@@ -59,7 +50,17 @@ class OrderItem(models.Model):
     itemPrice = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     itemSize = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="size")
     user_id = models.CharField(max_length=64)
-    order_id = models.ForeignKey(TmpOrder, on_delete=models.CASCADE, related_name="order")
+    order_id = models.ForeignKey('TmpOrder', on_delete=models.CASCADE, related_name="order")
 
     def __str__(self):
         return f"ORDER: {self.order_id.order_id} {self.item} {self.toppings} {self.itemPrice} {self.itemSize} {self.user_id} "
+
+class TmpOrder(models.Model):
+    user_id = models.CharField(max_length=64)
+    order_date = models.DateTimeField(default=timezone.now, blank=True)
+    order_id = models.CharField(max_length=64, default=TMP_ID())
+    orderitem = models.ManyToManyField(OrderItem,  blank=True, related_name="items")
+    total = OrderItem.objects.aggregate(total=Sum('itemPrice'))['total']
+
+    def __str__(self):
+        return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}, total: {self.total}"
