@@ -7,7 +7,7 @@ from django.db.models import Sum, FloatField
 
 from .models import ItemType, Item, Order, TmpOrder, OrderItem, Toppings, TMP_ID, Size
 
-def add_to_cart_view(request):
+def add_to_cart_view(request, user_id):
     if request.is_ajax and request.method == "POST":
         try:
             item_pk = int(request.POST["item_pk"])
@@ -28,12 +28,15 @@ def add_to_cart_view(request):
         new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  Size.objects.get(pk=int(request.POST["size"])), user_id =useridfororder, order_id = tmp_order_record)
         new_order_item.save()
         summm = OrderItem.objects.filter(order_id=tmp_order_record).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
+        tmp_order_record.total = summm
+        tmp_order_record.save()
         print (f"{summm}")
         a = {   "type": add_item.itemtype.name,
                 "name": add_item.name,
                 "extratop": add_item.has_extra_toppings,
                 "size": request.POST['size'],
-                "price": request.POST['price']
+                "price": request.POST['price'],
+                "total": tmp_order_record.total
             }
 
         return JsonResponse({"result": a, "status":"OK"}, status=200)
@@ -41,10 +44,6 @@ def add_to_cart_view(request):
         return JsonResponse({"error": "BOO"}, status=400)
 
 def index(request):
-    if request.session.get('tmp_id', False):
-        print (f'no session')
-    else:
-        print (f"{request.session.get('tmp_id')}")
     allpizza = {
         "Regular Pizza"  : Item.objects.filter(itemtype__name='Regular Pizza'),
         "Sicilian Pizza" : Item.objects.filter(itemtype__name='Sicilian Pizza'),
@@ -62,9 +61,13 @@ def index(request):
     }
     if not request.user.is_authenticated:
         context['user'] = 'none'
+        if 'user_id' not in request.session:
+            request.session['user_id'] = TMP_ID()
     else:
         context['user'] = request.user
+    context['user_id'] = request.session['user_id']
 
+    print (f"{request.session['user_id']}")
     return render(request, "orders/index.html", context)
 
 def cabinet_view(request):

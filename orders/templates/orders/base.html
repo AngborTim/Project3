@@ -137,20 +137,20 @@ $("#user_account").popover({
 
 document.addEventListener('DOMContentLoaded', function(){
 // добавляем временный ИД, чтобы если юзер не зарегистрировался, то сделанный заказ не потерялся
-{% if user == 'none' %}
-  if (!localStorage.getItem('temp_id')){
-    localStorage.setItem('temp_id', TMP_ID());
-  }
-{% else %}
-  if (localStorage.getItem('temp_id')){
+//{% if user == 'none' %}
+//  if (!localStorage.getItem('temp_id')){
+//    localStorage.setItem('temp_id', TMP_ID());
+//  }
+//{% else %}
+//  if (localStorage.getItem('temp_id')){
 
-  }
+//  }
 
-{% endif %}
+//{% endif %}
 
-if (localStorage.getItem('temp_id')){
-document.getElementById('order_header').insertAdjacentHTML('beforeend', localStorage.getItem('temp_id'));
-}
+//if (localStorage.getItem('temp_id')){
+document.getElementById('order_header').insertAdjacentHTML('beforeend', {{ user_id }});
+//}
 
 });
 

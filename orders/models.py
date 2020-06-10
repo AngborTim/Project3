@@ -4,7 +4,7 @@ from django.db.models import Sum
 import random
 
 def TMP_ID():
-    tmpid = str(random.random())[3:8];
+    tmpid = str(random.random())[3:10];
     return tmpid
 
 class ItemType(models.Model):
@@ -60,7 +60,7 @@ class TmpOrder(models.Model):
     order_date = models.DateTimeField(default=timezone.now, blank=True)
     order_id = models.CharField(max_length=64, default=TMP_ID())
     orderitem = models.ManyToManyField(OrderItem,  blank=True, related_name="items")
-    total = OrderItem.objects.aggregate(total=Sum('itemPrice'))['total']
+    total = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}, total: {self.total}"

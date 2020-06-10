@@ -69,6 +69,11 @@
 
       <div class="col-4" id="order_list">
         <table class="table table-sm" id="order_t">
+          <tr>
+          <th colspan="2" id="total">
+            Total:
+          </th>
+          </tr>
 
         </table>
 
@@ -84,18 +89,20 @@
         var size = btn_add.dataset.item_size;
         var item_price = btn_add.dataset.item_price;
         var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+
         if (localStorage.getItem('temp_id')){
             var tmpId = localStorage.getItem('temp_id');
         }
         else {
           var tmpId ='empty';
         }
-        $.post("{% url 'add_to_cart' %}", {
+        var ind = 1;
+        $.post("{% url 'add_to_cart' '1' %}", {
           item_pk: item_pk,
           size: size,
           price : item_price,
           temp_id: tmpId,
-          csrfmiddlewaretoken: csrftoken } )
+          csrfmiddlewaretoken: csrftoken })
           .done(function( data ) {
 
             // все получилось
@@ -120,6 +127,7 @@
               item_tr.appendChild(item_td);
               item_tr.appendChild(item_td_price);
               cart.appendChild(item_tr);
+              document.getElementById('total').innerHTML = data['result'].total;
             }
             else {
               alert('oblom');

@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Application definition
 
