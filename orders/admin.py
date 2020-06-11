@@ -1,7 +1,8 @@
 from django.contrib import admin
 
-from .models import ItemType, Item, Toppings, Order, TmpOrder, OrderItem, Size
+from .models import ItemType, Item, Toppings, Order, TmpOrder, OrderItem, Size, Profile
 
+admin.site.register(Profile)
 
 admin.site.register(ItemType)
 admin.site.register(Item)
