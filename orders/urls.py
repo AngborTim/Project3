@@ -1,4 +1,6 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from django.conf.urls import url
 
 from . import views
 
@@ -9,5 +11,6 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("signup", views.signup_view, name="signup"),
     path("cabinet", views.cabinet_view, name="cabinet"),
-    path("<int:user_id>/add_to_cart", views.add_to_cart_view, name="add_to_cart")
+    path("add_to_cart", views.add_to_cart_view, name="add_to_cart"),
+    url(r'^favicon\.ico$',RedirectView.as_view(url='/static/orders/favicon.png'))
 ]

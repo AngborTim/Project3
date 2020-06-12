@@ -42,14 +42,7 @@ class Item(models.Model):
     def __str__(self):
         return f"{self.itemtype} {self.name} {self.has_extra_toppings} {self.priceSmall} {self.priceLarge}"
 
-class Order(models.Model):
-    user_id = models.CharField(max_length=64)
-    order_date = models.DateTimeField(default=timezone.now, blank=True)
-
-    def __str__(self):
-        return f"{self.user_id} {self.order_date}"
-
-class Toppings(models.Model):
+class Topping(models.Model):
     itemtype = models.ForeignKey(ItemType, on_delete=models.CASCADE, related_name="toppingtype")
     name = models.CharField(max_length=64)
     price = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
@@ -65,21 +58,29 @@ class Size(models.Model):
 
 class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="item")
-    toppings = models.ManyToManyField(Toppings, blank=True, related_name="toppings")
+    topping = models.ManyToManyField(Topping, blank=True, related_name="topping")
     itemPrice = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     itemSize = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="size")
     user_id = models.CharField(max_length=64)
-    order_id = models.ForeignKey('TmpOrder', on_delete=models.CASCADE, related_name="order")
+    order_id = models.ForeignKey('Order', on_delete=models.CASCADE, related_name="order")
 
     def __str__(self):
-        return f"ORDER: {self.order_id.order_id} {self.item} {self.toppings} {self.itemPrice} {self.itemSize} {self.user_id} "
+        return f"ORDER: {self.order_id} {self.item} {self.topping} {self.itemPrice} {self.itemSize} {self.user_id} "
 
-class TmpOrder(models.Model):
+class OrderStatus(models.Model):
+    orderType = models.CharField(max_length=64)
+    def __str__(self):
+
+        return f"{self.orderType}"
+
+
+class Order(models.Model):
     user_id = models.CharField(max_length=64)
     order_date = models.DateTimeField(default=timezone.now, blank=True)
     order_id = models.CharField(max_length=64, default=TMP_ID())
+    order_status = models.ForeignKey(OrderStatus, on_delete=models.CASCADE, related_name="order_s", default=1)
     orderitem = models.ManyToManyField(OrderItem,  blank=True, related_name="items")
     total = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f"User: {self.user_id}, order ID: {self.order_id}, order date: {self.order_date}, total: {self.total}"
+        return f"User: {self.user_id}, order ID: {self.order_id}, status: {self.order_status}, order date: {self.order_date}, total: {self.total}"

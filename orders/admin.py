@@ -1,13 +1,13 @@
 from django.contrib import admin
 
-from .models import ItemType, Item, Toppings, Order, TmpOrder, OrderItem, Size, Profile
+from .models import ItemType, Item, Topping, Order, OrderItem, Size, Profile, OrderStatus
 
 admin.site.register(Profile)
 
 admin.site.register(ItemType)
 admin.site.register(Item)
-admin.site.register(Order)
 admin.site.register(OrderItem)
-admin.site.register(Toppings)
-admin.site.register(TmpOrder)
+admin.site.register(Topping)
+admin.site.register(Order)
+admin.site.register(OrderStatus)
 admin.site.register(Size)

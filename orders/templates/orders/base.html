@@ -26,7 +26,7 @@
         <span>Pizza Houzze</span></a>
 </div>
 <div class="container-fluid d-flex justify-content-end">
-  <div class="dropdown">
+  <!--<div class="dropdown">
     <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown" data-display="static">
       Shopping Cart
     </button>
@@ -35,7 +35,7 @@
     <div class="dropdown-divider"></div>
       <a class="dropdown-item" href="#">Place an order</a>
     </div>
-  </div>
+  </div>-->
 {% if user == 'none' %}
 
 <div class="dropdown">
@@ -136,22 +136,7 @@ $("#user_account").popover({
 });
 
 document.addEventListener('DOMContentLoaded', function(){
-// добавляем временный ИД, чтобы если юзер не зарегистрировался, то сделанный заказ не потерялся
-//{% if user == 'none' %}
-//  if (!localStorage.getItem('temp_id')){
-//    localStorage.setItem('temp_id', TMP_ID());
-//  }
-//{% else %}
-//  if (localStorage.getItem('temp_id')){
-
-//  }
-
-//{% endif %}
-
-//if (localStorage.getItem('temp_id')){
-document.getElementById('order_header').insertAdjacentHTML('beforeend', {{ user_id }});
-//}
-
+  document.getElementById('order_header').insertAdjacentHTML('beforeend', {{ user_id }});
 });
 
 

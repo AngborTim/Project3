@@ -71,10 +71,16 @@
         <table class="table table-sm" id="order_t">
           <tr>
           <th colspan="2" id="total">
-            Total:
+            {{total}} Total:
           </th>
           </tr>
 
+          {% for item in current_order_list  %}
+          <tr>
+            <td>{{item.itemSize.sizeName}} {{item.item.itemtype.name}} {{item.item.name}}</td>
+            <td>${{item.itemPrice}}</td>
+          </tr>
+          {% endfor %}
         </table>
 
       </div>
@@ -90,18 +96,12 @@
         var item_price = btn_add.dataset.item_price;
         var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
 
-        if (localStorage.getItem('temp_id')){
-            var tmpId = localStorage.getItem('temp_id');
-        }
-        else {
-          var tmpId ='empty';
-        }
         var ind = 1;
-        $.post("{% url 'add_to_cart' '1' %}", {
+        $.post("{% url 'add_to_cart' %}", {
           item_pk: item_pk,
           size: size,
           price : item_price,
-          temp_id: tmpId,
+          user_id: {{ user_id }},
           csrfmiddlewaretoken: csrftoken })
           .done(function( data ) {
 
