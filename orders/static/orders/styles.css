@@ -23,3 +23,25 @@ img.gear
  #order_list{
       overflow: scroll;
  }
+
+ .over
+ {
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background:#99b3ff;
+     opacity: 0.2;
+     filter: alpha(opacity=50); /* For IE8 and earlier */
+     z-index: 100;
+ }
+
+ .loading
+ {
+     position:absolute;
+     top: 50%;
+     left: 50%;
+     transform: translate(-50%, -50%);
+     z-index: 100;
+ }

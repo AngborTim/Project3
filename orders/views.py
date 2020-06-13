@@ -13,11 +13,7 @@ def get_order(request):
     #  кроме факта наличия заказа с ИД пользователя, еще не значит, что это тот самый заказа
     # мы ж структуру базы изменили и теперь все заказы в одной
     user_for_order = get_user(request)
-    if not Order.objects.filter(user_id=user_for_order):
-        order_record = Order(user_id = user_for_order)
-        order_record.save()
-    else:
-        order_record = Order.objects.get(user_id=user_for_order)
+    order_record, created = Order.objects.filter(user_id=user_for_order).get_or_create(user_id=user_for_order)
     return order_record
 
 def get_user(request):
@@ -91,7 +87,7 @@ def index(request):
 
     if 'order_id' in request.session:
         c_order = get_order(request)
-        context['total'] = "${:,.2f}".format(c_order.total),
+        context['total'] = c_order.total
         context['current_order_list'] = OrderItem.objects.filter(order_id=c_order)
         #print(f"{context['current_order_list']}")
     return render(request, "orders/index.html", context)

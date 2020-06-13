@@ -2,7 +2,8 @@
 {% block title %}Pizza Houzze{% endblock %}
 
 {% block main %}
-<main class="container-fluid" style="position: fixed;">
+
+<main class="container-fluid disabled" style="position: fixed; opacity:0.2!important;">
 <div class="row">
   <div class="col-8" id="extra_nav">
     <div>
@@ -69,9 +70,12 @@
 
       <div class="col-4" id="order_list">
         <table class="table table-sm" id="order_t">
-          <tr>
-          <th colspan="2" id="total">
-            {{total}} Total:
+          <tr class="text-center">
+          <th id="total" class="h2">
+               Total: ${{ total }}
+          </th>
+          <th>
+            <button type="button" data-order_id="1" data-user_id="1" id="checkout" name="checkout" class="btn btn-success">Checkout</button>
           </th>
           </tr>
 
@@ -86,6 +90,10 @@
       </div>
   </div>
 </main>
+
+<!-- MODAL ADD TOPPINGS -->
+
+
 
 <script type="text/javascript">
   document.addEventListener('DOMContentLoaded', function(){
@@ -127,7 +135,7 @@
               item_tr.appendChild(item_td);
               item_tr.appendChild(item_td_price);
               cart.appendChild(item_tr);
-              document.getElementById('total').innerHTML = data['result'].total;
+              document.getElementById('total').innerHTML = ' Total: $' + data['result'].total.toFixed(2);
             }
             else {
               alert('oblom');

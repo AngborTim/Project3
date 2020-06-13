@@ -75,6 +75,7 @@ var ul = document.getElementById("user_block");
 window.addEventListener('resize', window_resize);
 
 function window_resize(){
+
 var h = window.innerHeight - document.getElementById('foo').clientHeight - document.getElementById('nav').clientHeight - document.getElementById('extra_nav').clientHeight  + 'px';
 $('#scrl').css('height', h);
 $('#order_list').css('height', h, 'important');
