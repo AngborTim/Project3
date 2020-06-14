@@ -11,7 +11,7 @@ from .models import ItemType, Item, Order, OrderItem, Topping, TMP_ID, Size
 def get_order(request):
     # тут надо добавить проверку на статус заказа, так как
     #  кроме факта наличия заказа с ИД пользователя, еще не значит, что это тот самый заказа
-    # мы ж структуру базы изменили и теперь все заказы в одной
+    # мы ж структуру базы изменили и теперь все заказы в одной таблице
     user_for_order = get_user(request)
     order_record, created = Order.objects.filter(user_id=user_for_order).get_or_create(user_id=user_for_order)
     return order_record
@@ -28,9 +28,24 @@ def get_user(request):
         else:
             return request.session['user_id']
 
+def remove_item_from_cart_view(request):
+    if request.is_ajax and request.method == "POST":
+        item_id = int(request.POST['item_id'])
+        order_id = int(request.POST['order_id'])
+
+        
+
+        OrderItem.objects.filter(pk=item_id).delete()
+        order = Order.objects.filter(order_id=order_id)
+        summm = OrderItem.objects.filter(order_id=order).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
+        order.total = summm
+        order.save()
+        return JsonResponse({"total": summm, "status":"OK"}, status=200)
+    else:
+        return JsonResponse({"error": "BOO"}, status=400)
+
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
-        print(f"USER ID: { request.session['user_id'] }")
         try:
             item_pk = int(request.POST["item_pk"])
             add_item = Item.objects.get(pk=item_pk)
@@ -45,16 +60,17 @@ def add_to_cart_view(request):
         new_order_item.save()
         if 'order_id' not in request.session:
             request.session['order_id'] = new_order.order_id
-        print(f"ORDER ID: { request.session['order_id'] }")
         summm = OrderItem.objects.filter(order_id=new_order).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
         new_order.total = summm
         new_order.save()
-        a = {   "type": add_item.itemtype.name,
-                "name": add_item.name,
+        a = {   "order_id": new_order.order_id,
+                "item_id" : add_item.pk,
+                "type"    : add_item.itemtype.name,
+                "name"    : add_item.name,
                 "extratop": add_item.has_extra_toppings,
-                "size": Size.objects.get(pk=int(request.POST["size"])).sizeName,
-                "price": request.POST['price'],
-                "total": new_order.total
+                "size"    : Size.objects.get(pk=int(request.POST["size"])).sizeName,
+                "price"   : request.POST['price'],
+                "total"   : new_order.total
             }
 
         return JsonResponse({"result": a, "status":"OK"}, status=200)
@@ -72,11 +88,14 @@ def index(request):
         "Pasta"           : Item.objects.filter(itemtype__name='Pasta').order_by('name'),
         "Salads": Item.objects.filter(itemtype__name='Salads').order_by('name')
     }
+
     context = {
-        "items"        : Item.objects.all(),
-        "allpizza"     : allpizza,
-        "salads_pasta" : s_p
+        "items"         : Item.objects.all(),
+        "allpizza"      : allpizza,
+        "salads_pasta"  : s_p,
+        "pizza_topings" : Topping.objects.filter(itemtype__name='Toppings (pizza)').order_by('name')
     }
+
     if not request.user.is_authenticated:
         context['user'] = 'none'
         if 'user_id' not in request.session:
@@ -89,7 +108,6 @@ def index(request):
         c_order = get_order(request)
         context['total'] = c_order.total
         context['current_order_list'] = OrderItem.objects.filter(order_id=c_order)
-        #print(f"{context['current_order_list']}")
     return render(request, "orders/index.html", context)
 
 def cabinet_view(request):

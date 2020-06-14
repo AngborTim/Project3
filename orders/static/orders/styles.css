@@ -45,3 +45,30 @@ img.gear
      transform: translate(-50%, -50%);
      z-index: 100;
  }
+
+ .item_block{
+     animation-name: hide;
+     animation-duration: 1s;
+     animation-fill-mode: forwards;
+     animation-play-state: paused;
+ }
+
+ @keyframes hide {
+    0% {
+        opacity: 1;
+        height: 100%;
+        line-height: 100%;
+    }
+    75% {
+        opacity: 0;
+        height: 100%;
+        line-height: 100%;
+    }
+    100% {
+        opacity: 0;
+        height: 0px;
+        line-height: 0px;
+        padding: 0px;
+        margin-bottom: 0px;
+    }
+}

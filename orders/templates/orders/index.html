@@ -3,7 +3,7 @@
 
 {% block main %}
 
-<main class="container-fluid disabled" style="position: fixed; opacity:0.2!important;">
+<main class="container-fluid disabled" style="position: fixed;">
 <div class="row">
   <div class="col-8" id="extra_nav">
     <div>
@@ -71,32 +71,69 @@
       <div class="col-4" id="order_list">
         <table class="table table-sm" id="order_t">
           <tr class="text-center">
-          <th id="total" class="h2">
+            <th id="total" class="h2" colspan="2">
                Total: ${{ total }}
-          </th>
-          <th>
-            <button type="button" data-order_id="1" data-user_id="1" id="checkout" name="checkout" class="btn btn-success">Checkout</button>
-          </th>
+             </th>
+             <th>
+               <button type="button" data-order_id="1" data-user_id="1" id="checkout" name="checkout" class="btn btn-success">Checkout</button>
+             </th>
           </tr>
 
+        {% if current_order_list %}
           {% for item in current_order_list  %}
-          <tr>
+          <tr id="item-{{ item.pk }}" class="item_block">
+            <td>
+              <button type="button" class="close delete_item" data-item_id="{{ item.pk }}" data-url="{% url 'remove_item_from_cart' %}"  data-order_id = "{{item.order_id.order_id}}">
+                <span title="Delete an item">&times;</span>
+              </button>
+            </td>
             <td>{{item.itemSize.sizeName}} {{item.item.itemtype.name}} {{item.item.name}}</td>
             <td>${{item.itemPrice}}</td>
           </tr>
           {% endfor %}
+        {% endif %}
+          <tr>
+            <td>
+              <button type="button" class="close delete_item" data-item_id="1">
+                <span title="Delete an item">&times;</span>
+              </button>
+            </td>
+            <td>Pizza<br />
+              <select name="select" data-topping-1>
+                <option value="value1" disabled selected>Choose toppings</option>
+                {% for top in pizza_topings %}
+                  <option value="{{ top.pk }}">{{ top.name}}</option>
+                {% endfor%}
+              </select>
+              <select name="select" data-topping-2>
+                <option value="value1" disabled selected>Choose toppings</option>
+                {% for top in pizza_topings %}
+                  <option value="{{ top.pk }}">{{ top.name}}</option>
+                {% endfor%}
+              </select>
+              <select name="select" data-topping-3>
+                <option value="value1" disabled selected>Choose toppings</option>
+                {% for top in pizza_topings %}
+                  <option value="{{ top.pk }}">{{ top.name}}</option>
+                {% endfor%}
+              </select>
+
+
+            </td>
+            <td>$10</td>
+          </tr>
+
         </table>
 
       </div>
   </div>
 </main>
 
-<!-- MODAL ADD TOPPINGS -->
-
-
 
 <script type="text/javascript">
+
   document.addEventListener('DOMContentLoaded', function(){
+
     document.querySelectorAll('.btn_add').forEach(btn_add => {
       btn_add.onclick = () => {
         var item_pk = btn_add.dataset.item_pk;
@@ -110,13 +147,28 @@
           size: size,
           price : item_price,
           user_id: {{ user_id }},
-          csrfmiddlewaretoken: csrftoken })
+          csrfmiddlewaretoken: csrftoken }, function(){
+            document.querySelector('.spinner-border').classList.remove('d-none');
+            document.querySelector('main').setAttribute( 'style', 'position: fixed; opacity:50% !important');
+          })
           .done(function( data ) {
 
             // все получилось
             if (data['status'] == "OK"){
               var cart = document.getElementById('order_t');
               var item_tr = document.createElement("tr");
+
+              var item_td_del = document.createElement("td");
+              var btn = document.createElement("button");
+              btn.classList.add("close");
+              btn.dataset.item_id = data['result'].item_id;
+              btn.dataset.order_id = data['result'].order_id;
+              var btn_span = document.createElement("span");
+              btn_span.title = "Delete an item";
+              btn_span.innerHTML = "&times;";
+              btn.appendChild(btn_span);
+              item_td_del.appendChild(btn);
+
               var item_td = document.createElement("td");
               if (data['result'].type == 'Pasta' || data['result'].type ==  'Salads'){
                 var txt = data['result'].type + '"' + data['result'].name + '"';
@@ -129,9 +181,13 @@
               }
               var new_item = document.createTextNode( txt );
               item_td.appendChild(new_item);
+
+
               var item_td_price = document.createElement("td");
               var price_text = document.createTextNode("$" + data['result'].price);
               item_td_price.appendChild(price_text);
+
+              item_tr.appendChild(item_td_del);
               item_tr.appendChild(item_td);
               item_tr.appendChild(item_td_price);
               cart.appendChild(item_tr);
@@ -141,6 +197,10 @@
               alert('oblom');
             }
 
+        })
+        .always(function(){
+          document.querySelector('.spinner-border').classList.add('d-none');
+          document.querySelector('main').setAttribute( 'style',  'position: fixed; opacity:100% !important');
         })
       };
     });
