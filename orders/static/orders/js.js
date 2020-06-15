@@ -42,7 +42,7 @@ function deletion(elm){
               document.getElementById('total').innerHTML = ' Total: $' + data['total'].toFixed(2);
            }
            else{
-             document.getElementById('total').innerHTML = '';
+             document.getElementById('total').innerHTML = 'Cart is empty';
            }
          }
          else {
@@ -117,7 +117,7 @@ function add_menu(){
 
             var brr = document.createElement("br");
             var topings_selector = document.createElement("select");
-            alert(data['result'].pizza_topings);
+            alert(data['toppings'].itemtype);
             //<select name="select" data-topping1>
             //  <option value="value1" disabled selected>Choose toppings</option>
             //  {% for top in pizza_topings %}

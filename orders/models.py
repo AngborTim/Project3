@@ -50,6 +50,14 @@ class Topping(models.Model):
     def __str__(self):
         return f"{self.itemtype} {self.name} {self.price}"
 
+    def serializeCustom(self):
+        data = {
+            "itemtype": self.itemtype.name,
+            "name": self.name,
+            "price": self.price,
+            }
+        return data
+
 class Size(models.Model):
     sizeName = models.CharField(max_length=64)
 

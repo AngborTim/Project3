@@ -44,14 +44,6 @@ def remove_item_from_cart_view(request):
     else:
         return JsonResponse({"error": "BOO"}, status=400)
 
-def serializeCustom(self):
-    data = {
-        "itemtype": self.itemtype.name,
-        "name": self.name,
-        "price": self.price,
-        }
-    return data
-
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
         try:
@@ -81,9 +73,10 @@ def add_to_cart_view(request):
                 "total"   : new_order.total
             }
 
-        pizza_topings = Topping.objects.filter(itemtype__name='Toppings (pizza)').order_by('name')
-
-        return JsonResponse({"result": a, "toppings": list(pizza_topings), "status":"OK"}, status=200)
+        #теперь надо сформировать разные списки топпингов для разных типов блюд
+        pizza_topings = Topping.objects.order_by('?').first()
+        print(f"{pizza_topings.serializeCustom()}")
+        return JsonResponse({"result": a, "toppings": pizza_topings.serializeCustom(), "status":"OK"}, status=200)
     else:
         return JsonResponse({"error": "BOO"}, status=400)
 
