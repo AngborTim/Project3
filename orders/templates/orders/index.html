@@ -72,7 +72,9 @@
         <table class="table table-sm" id="order_t">
           <tr class="text-center">
             <th id="total" class="h2" colspan="2">
-               Total: ${{ total }}
+              {% if total %}
+                Total: ${{ total }}
+              {% endif %}
              </th>
              <th>
                <button type="button" data-order_id="1" data-user_id="1" id="checkout" name="checkout" class="btn btn-success">Checkout</button>
@@ -83,7 +85,7 @@
           {% for item in current_order_list  %}
           <tr id="item-{{ item.pk }}" class="item_block">
             <td>
-              <button type="button" class="close delete_item" data-item_id="{{ item.pk }}" data-url="{% url 'remove_item_from_cart' %}"  data-order_id = "{{item.order_id.order_id}}">
+              <button type="button" class="close delete_item" data-item_id="{{ item.pk }}"  data-order_id = "{{item.order_id.order_id}}">
                 <span title="Delete an item">&times;</span>
               </button>
             </td>
@@ -99,19 +101,19 @@
               </button>
             </td>
             <td>Pizza<br />
-              <select name="select" data-topping-1>
+              <select name="select" data-topping1>
                 <option value="value1" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
               </select>
-              <select name="select" data-topping-2>
+              <select name="select" data-topping2>
                 <option value="value1" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
               </select>
-              <select name="select" data-topping-3>
+              <select name="select" data-topping3>
                 <option value="value1" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
@@ -131,79 +133,9 @@
 
 
 <script type="text/javascript">
+  var user_id = {{ user_id }};
+  var url_add_to_cart = "{% url 'add_to_cart' %}";
+  var remove_item_from_cart = "{% url 'remove_item_from_cart' %}";//data-url="{% url 'remove_item_from_cart' %}"
 
-  document.addEventListener('DOMContentLoaded', function(){
-
-    document.querySelectorAll('.btn_add').forEach(btn_add => {
-      btn_add.onclick = () => {
-        var item_pk = btn_add.dataset.item_pk;
-        var size = btn_add.dataset.item_size;
-        var item_price = btn_add.dataset.item_price;
-        var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
-
-        var ind = 1;
-        $.post("{% url 'add_to_cart' %}", {
-          item_pk: item_pk,
-          size: size,
-          price : item_price,
-          user_id: {{ user_id }},
-          csrfmiddlewaretoken: csrftoken }, function(){
-            document.querySelector('.spinner-border').classList.remove('d-none');
-            document.querySelector('main').setAttribute( 'style', 'position: fixed; opacity:50% !important');
-          })
-          .done(function( data ) {
-
-            // все получилось
-            if (data['status'] == "OK"){
-              var cart = document.getElementById('order_t');
-              var item_tr = document.createElement("tr");
-
-              var item_td_del = document.createElement("td");
-              var btn = document.createElement("button");
-              btn.classList.add("close");
-              btn.dataset.item_id = data['result'].item_id;
-              btn.dataset.order_id = data['result'].order_id;
-              var btn_span = document.createElement("span");
-              btn_span.title = "Delete an item";
-              btn_span.innerHTML = "&times;";
-              btn.appendChild(btn_span);
-              item_td_del.appendChild(btn);
-
-              var item_td = document.createElement("td");
-              if (data['result'].type == 'Pasta' || data['result'].type ==  'Salads'){
-                var txt = data['result'].type + '"' + data['result'].name + '"';
-              }
-              else if (data['result'].type == 'Sicilian Pizza' || data['result'].type ==  'Regular Pizza'){
-                var txt = data['result'].size[0].toUpperCase() + data['result'].size.slice(1)+ ' "' + data['result'].type+ '" '+ data['result'].name;
-              }
-              else {
-                var txt = data['result'].size[0].toUpperCase() + data['result'].size.slice(1)+ ' "' + data['result'].type+ '"';
-              }
-              var new_item = document.createTextNode( txt );
-              item_td.appendChild(new_item);
-
-
-              var item_td_price = document.createElement("td");
-              var price_text = document.createTextNode("$" + data['result'].price);
-              item_td_price.appendChild(price_text);
-
-              item_tr.appendChild(item_td_del);
-              item_tr.appendChild(item_td);
-              item_tr.appendChild(item_td_price);
-              cart.appendChild(item_tr);
-              document.getElementById('total').innerHTML = ' Total: $' + data['result'].total.toFixed(2);
-            }
-            else {
-              alert('oblom');
-            }
-
-        })
-        .always(function(){
-          document.querySelector('.spinner-border').classList.add('d-none');
-          document.querySelector('main').setAttribute( 'style',  'position: fixed; opacity:100% !important');
-        })
-      };
-    });
-});
 </script>
 {% endblock %}

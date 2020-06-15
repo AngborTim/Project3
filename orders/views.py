@@ -32,17 +32,25 @@ def remove_item_from_cart_view(request):
     if request.is_ajax and request.method == "POST":
         item_id = int(request.POST['item_id'])
         order_id = int(request.POST['order_id'])
-
-        
-
-        OrderItem.objects.filter(pk=item_id).delete()
-        order = Order.objects.filter(order_id=order_id)
-        summm = OrderItem.objects.filter(order_id=order).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
+        z = OrderItem.objects.filter(pk=item_id).delete()
+        order = Order.objects.get(order_id=order_id)
+        if OrderItem.objects.filter(order_id=order):
+            summm = OrderItem.objects.filter(order_id=order).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
+        else:
+            summm = 0
         order.total = summm
         order.save()
         return JsonResponse({"total": summm, "status":"OK"}, status=200)
     else:
         return JsonResponse({"error": "BOO"}, status=400)
+
+def serializeCustom(self):
+    data = {
+        "itemtype": self.itemtype.name,
+        "name": self.name,
+        "price": self.price,
+        }
+    return data
 
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
@@ -64,7 +72,7 @@ def add_to_cart_view(request):
         new_order.total = summm
         new_order.save()
         a = {   "order_id": new_order.order_id,
-                "item_id" : add_item.pk,
+                "item_id" : new_order_item.pk,
                 "type"    : add_item.itemtype.name,
                 "name"    : add_item.name,
                 "extratop": add_item.has_extra_toppings,
@@ -73,7 +81,9 @@ def add_to_cart_view(request):
                 "total"   : new_order.total
             }
 
-        return JsonResponse({"result": a, "status":"OK"}, status=200)
+        pizza_topings = Topping.objects.filter(itemtype__name='Toppings (pizza)').order_by('name')
+
+        return JsonResponse({"result": a, "toppings": list(pizza_topings), "status":"OK"}, status=200)
     else:
         return JsonResponse({"error": "BOO"}, status=400)
 

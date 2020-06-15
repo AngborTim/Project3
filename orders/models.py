@@ -65,7 +65,7 @@ class OrderItem(models.Model):
     order_id = models.ForeignKey('Order', on_delete=models.CASCADE, related_name="order")
 
     def __str__(self):
-        return f"ORDER: {self.order_id} {self.item} {self.topping} {self.itemPrice} {self.itemSize} {self.user_id} "
+        return f"{self.pk} ORDER: {self.order_id} {self.item} {self.topping} {self.itemPrice} {self.itemSize} {self.user_id} "
 
 class OrderStatus(models.Model):
     orderType = models.CharField(max_length=64)
