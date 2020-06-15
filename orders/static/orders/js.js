@@ -117,7 +117,12 @@ function add_menu(){
 
             var brr = document.createElement("br");
             var topings_selector = document.createElement("select");
-            alert(data['toppings'].itemtype);
+            alert(data['toppings'].length);
+
+            все возвращает как надо
+            теперь надо разобраться с добавление дропдаунов с топингами согласно типу блюда
+
+            //[0]['name']
             //<select name="select" data-topping1>
             //  <option value="value1" disabled selected>Choose toppings</option>
             //  {% for top in pizza_topings %}

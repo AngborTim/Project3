@@ -73,10 +73,15 @@ def add_to_cart_view(request):
                 "total"   : new_order.total
             }
 
-        #теперь надо сформировать разные списки топпингов для разных типов блюд
-        pizza_topings = Topping.objects.order_by('?').first()
-        print(f"{pizza_topings.serializeCustom()}")
-        return JsonResponse({"result": a, "toppings": pizza_topings.serializeCustom(), "status":"OK"}, status=200)
+        if add_item.itemtype.name == "Regular Pizza" or add_item.itemtype.name == "Sicilian Pizza":
+            topings = Topping.objects.filter(itemtype__name='Toppings (pizza)').values("pk", "itemtype__name", "name", "price").order_by('name')
+        if add_item.itemtype.name == "Subs" and add_item.name != "Steak + Cheese":
+            topings = Topping.objects.filter(itemtype__name='Extra for subs').values("pk", "itemtype__name", "name", "price")
+        if add_item.name == "Steak + Cheese":
+            topings = Topping.objects.filter(itemtype__name__in=['Extra for subs','Extra for Steak + Cheese']).values("pk", "itemtype__name", "name", "price").order_by('name')
+
+        print(f"{add_item.itemtype.name} {list(topings)}")
+        return JsonResponse({"result": a, "toppings": list(topings), "status":"OK"}, status=200)
     else:
         return JsonResponse({"error": "BOO"}, status=400)
 
