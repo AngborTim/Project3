@@ -44,6 +44,9 @@ def remove_item_from_cart_view(request):
     else:
         return JsonResponse({"error": "BOO"}, status=400)
 
+def add_topings_view(request):
+    pass
+
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
         try:
@@ -80,7 +83,6 @@ def add_to_cart_view(request):
         if add_item.name == "Steak + Cheese":
             topings = Topping.objects.filter(itemtype__name__in=['Extra for subs','Extra for Steak + Cheese']).values("pk", "itemtype__name", "name", "price").order_by('name')
 
-        print(f"{add_item.itemtype.name} {list(topings)}")
         return JsonResponse({"result": a, "toppings": list(topings), "status":"OK"}, status=200)
     else:
         return JsonResponse({"error": "BOO"}, status=400)

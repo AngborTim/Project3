@@ -115,18 +115,36 @@ function add_menu(){
             var new_item = document.createTextNode( txt );
             item_td.appendChild(new_item);
 
+            alert(data['result'].extratop);
+
             var brr = document.createElement("br");
+            item_td.appendChild(brr);
             var topings_selector = document.createElement("select");
-            alert(data['toppings'].length);
+            var def = document.createElement("option");
+            def.disabled = "disabled";
+            def.selected = "selected";
+            def.innerHTML = "Choose toppings";
+            topings_selector.appendChild(def);
 
-            все возвращает как надо
-            теперь надо разобраться с добавление дропдаунов с топингами согласно типу блюда
+            for (var i = 0; i < data['toppings'].length; i++){
+              alert(data['toppings'][i]['price']);
+              var itm = document.createElement("option");
+              itm.value = data['toppings'][i]['pk'];
+              var price_and_name = data['toppings'][i]['name'];
+                if (data['toppings'][i]['price'] != 0){
+                    price_and_name += ' + $'+data['toppings'][i]['price'];
+                }
+              itm.innerHTML = price_and_name;
+              topings_selector.appendChild(itm);
+              //alert(data['toppings'][i]['name']);
+            }
+            item_td.appendChild(topings_selector);
 
-            //[0]['name']
+            //[0]
             //<select name="select" data-topping1>
             //  <option value="value1" disabled selected>Choose toppings</option>
+            //
             //  {% for top in pizza_topings %}
-            //    <option value="{{ top.pk }}">{{ top.name}}</option>
             //  {% endfor%}
             //</select>
             //extratop
