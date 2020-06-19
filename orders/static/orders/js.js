@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function(){
+  document.addEventListener('DOMContentLoaded', function(){
 add_deletion();
 add_menu();
 
@@ -16,6 +16,10 @@ if (document.querySelector('#user_account')){
   }
 });
 
+
+function toppings(){
+  alert('toppings adding')
+}
 
 function deletion(elm){
 
@@ -114,31 +118,34 @@ function add_menu(){
             }
             var new_item = document.createTextNode( txt );
             item_td.appendChild(new_item);
+            // добавляем столько дропдаунов, сколько позволяет item
+            var top = data['result'].extratop;
 
-            alert(data['result'].extratop);
+            while (top > 0) {
+              var brr = document.createElement("br");
+              item_td.appendChild(brr);
+              var topings_selector = document.createElement("select");
+              var def = document.createElement("option");
+              def.disabled = "disabled";
+              def.selected = "selected";
+              def.innerHTML = "Choose toppings";
+              topings_selector.appendChild(def);
 
-            var brr = document.createElement("br");
-            item_td.appendChild(brr);
-            var topings_selector = document.createElement("select");
-            var def = document.createElement("option");
-            def.disabled = "disabled";
-            def.selected = "selected";
-            def.innerHTML = "Choose toppings";
-            topings_selector.appendChild(def);
-
-            for (var i = 0; i < data['toppings'].length; i++){
-              alert(data['toppings'][i]['price']);
-              var itm = document.createElement("option");
-              itm.value = data['toppings'][i]['pk'];
-              var price_and_name = data['toppings'][i]['name'];
-                if (data['toppings'][i]['price'] != 0){
-                    price_and_name += ' + $'+data['toppings'][i]['price'];
-                }
-              itm.innerHTML = price_and_name;
-              topings_selector.appendChild(itm);
-              //alert(data['toppings'][i]['name']);
+              for (var i = 0; i < data['toppings'].length; i++){
+                var itm = document.createElement("option");
+                itm.value = data['toppings'][i]['pk'];
+                var price_and_name = data['toppings'][i]['name'];
+                  if (data['toppings'][i]['price'] != 0){
+                      price_and_name += ' + $'+data['toppings'][i]['price'];
+                  }
+                itm.innerHTML = price_and_name;
+                topings_selector.appendChild(itm);
+                //alert(data['toppings'][i]['name']);
+              }
+              item_td.appendChild(topings_selector);
+              top -= 1;
             }
-            item_td.appendChild(topings_selector);
+
 
             //[0]
             //<select name="select" data-topping1>

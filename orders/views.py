@@ -78,10 +78,12 @@ def add_to_cart_view(request):
 
         if add_item.itemtype.name == "Regular Pizza" or add_item.itemtype.name == "Sicilian Pizza":
             topings = Topping.objects.filter(itemtype__name='Toppings (pizza)').values("pk", "itemtype__name", "name", "price").order_by('name')
-        if add_item.itemtype.name == "Subs" and add_item.name != "Steak + Cheese":
+        elif add_item.itemtype.name == "Subs" and add_item.name != "Steak + Cheese":
             topings = Topping.objects.filter(itemtype__name='Extra for subs').values("pk", "itemtype__name", "name", "price")
-        if add_item.name == "Steak + Cheese":
+        elif add_item.name == "Steak + Cheese":
             topings = Topping.objects.filter(itemtype__name__in=['Extra for subs','Extra for Steak + Cheese']).values("pk", "itemtype__name", "name", "price").order_by('name')
+        else:
+            topings = {'toppings': 'none'}
 
         return JsonResponse({"result": a, "toppings": list(topings), "status":"OK"}, status=200)
     else:

@@ -104,7 +104,7 @@
             </td>
             <td>Pizza<br />
               <select class="topings" name="select" data-topping1>
-                <option value="value1" disabled selected>Choose toppings</option>
+                <option value="value1" disabled selected onchange="toppings()">Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
