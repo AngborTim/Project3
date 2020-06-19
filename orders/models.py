@@ -48,7 +48,7 @@ class Topping(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f"{self.itemtype} {self.name} {self.price}"
+        return f"{self.pk} {self.itemtype} {self.name} {self.price}"
 
     def serializeCustom(self):
         data = {

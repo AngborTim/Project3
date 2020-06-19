@@ -17,8 +17,34 @@ if (document.querySelector('#user_account')){
 });
 
 
-function toppings(){
-  alert('toppings adding')
+function toppings(elm){
+  alert(elm.dataset.topping+ ' '+elm.dataset.order_item);
+  var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+  $.post(add_topings, {
+    order_item_pk: elm.dataset.order_item,
+    topping_pk: elm.dataset.topping,
+    csrfmiddlewaretoken: csrftoken },
+    function(){
+      document.querySelector('.spinner-border').classList.remove('d-none');
+      document.querySelector('main').setAttribute( 'style', 'position: fixed; opacity:50% !important');
+    })
+    .done(function( data ) {
+
+теперь осталось сделать проверку и убирать из других дропдаунов те топпинги, которые уже выбраны
+чтобы не было повторов. иначе это уцже головняк целый делать повторяющиеся топпинги
+
+      // все получилось
+      if (data['status'] == "OK"){
+        alert('OK')
+      }
+      else {
+        alert(data['status']);
+      }
+  })
+  .always(function(){
+    document.querySelector('.spinner-border').classList.add('d-none');
+    document.querySelector('main').setAttribute( 'style',  'position: fixed; opacity:100% !important');
+  })
 }
 
 function deletion(elm){
@@ -50,7 +76,7 @@ function deletion(elm){
            }
          }
          else {
-           alert('oblom');
+           alert(data['status']);
          }
      })
      .always(function(){

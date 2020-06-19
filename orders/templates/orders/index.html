@@ -103,8 +103,8 @@
               </button>
             </td>
             <td>Pizza<br />
-              <select class="topings" name="select" data-topping1>
-                <option value="value1" disabled selected onchange="toppings()">Choose toppings</option>
+              <select class="topings" name="select" data-topping='17' data-order_item='263' onchange="toppings(this)">
+                <option value="value1" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
@@ -137,7 +137,8 @@
 <script type="text/javascript">
   var user_id = {{ user_id }};
   var url_add_to_cart = "{% url 'add_to_cart' %}";
-  var remove_item_from_cart = "{% url 'remove_item_from_cart' %}";//data-url="{% url 'remove_item_from_cart' %}"
+  var remove_item_from_cart = "{% url 'remove_item_from_cart' %}";
+  var add_topings = "{% url 'add_topings' %}";
 
 </script>
 {% endblock %}

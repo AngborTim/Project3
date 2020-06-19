@@ -45,7 +45,32 @@ def remove_item_from_cart_view(request):
         return JsonResponse({"error": "BOO"}, status=400)
 
 def add_topings_view(request):
-    pass
+    if request.is_ajax and request.method == "POST":
+        try:
+            order_item_pk = int(request.POST["order_item_pk"])
+            topping_pk = int(request.POST["topping_pk"])
+            order_item = OrderItem.objects.get(pk=order_item_pk)
+            topping = Topping.objects.get(pk=topping_pk)
+        except KeyError:
+            return render(request, "orders/error.html", {"message": "No selection"})
+        except OrderItem.DoesNotExist:
+            return render(request, "orders/error.html", {"message": "No order item"})
+        except Topping.DoesNotExist:
+            return render(request, "orders/error.html", {"message": "No topping item"})
+
+        if order_item.topping.all().count() < order_item.item.has_extra_toppings:
+            print (f'{order_item.topping.all().count()} less {order_item.item.has_extra_toppings}')
+            if not OrderItem.objects.filter(topping=topping).exists():
+                order_item.topping.add(topping)
+                return JsonResponse({"status":"OK"}, status=200)
+            else:
+                print (f'EXISTS {topping}')
+                return JsonResponse({"status":"EXISTS"}, status=200)
+        else:
+            print (f'{order_item.topping.all().count()} enougth {order_item.item.has_extra_toppings}')
+            return JsonResponse({"status":"MAX TOPPINGS"}, status=200)
+
+
 
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
