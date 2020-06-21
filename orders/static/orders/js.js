@@ -18,11 +18,11 @@ if (document.querySelector('#user_account')){
 
 
 function toppings(elm){
-  alert(elm.dataset.topping+ ' '+elm.dataset.order_item);
+  alert(elm.value + ' ' + elm.parentElement.dataset.order_item);
   var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
   $.post(add_topings, {
-    order_item_pk: elm.dataset.order_item,
-    topping_pk: elm.dataset.topping,
+    order_item_pk: elm.parentElement.dataset.order_item,
+    topping_pk: elm.value,
     csrfmiddlewaretoken: csrftoken },
     function(){
       document.querySelector('.spinner-border').classList.remove('d-none');
@@ -30,12 +30,18 @@ function toppings(elm){
     })
     .done(function( data ) {
 
-теперь осталось сделать проверку и убирать из других дропдаунов те топпинги, которые уже выбраны
-чтобы не было повторов. иначе это уцже головняк целый делать повторяющиеся топпинги
-
       // все получилось
       if (data['status'] == "OK"){
-        alert('OK')
+        alert('OK');
+        topings_lists = elm.parentElement.getElementsByClassName("topings")
+        for (let topings_list of topings_lists) {
+          if (topings_list != elm){
+            for (var i=1; i < topings_list.options.length; i++ ){
+                topings_list.options[i].disabled = false;
+            }
+            topings_list.options[elm.selectedIndex].disabled = true;
+          }
+        }
       }
       else {
         alert(data['status']);

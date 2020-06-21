@@ -102,20 +102,20 @@
                 <span title="Delete an item">&times;</span>
               </button>
             </td>
-            <td>Pizza<br />
-              <select class="topings" name="select" data-topping='17' data-order_item='263' onchange="toppings(this)">
+            <td data-order_item='264'>Pizza<br />
+              <select class="topings" onchange="toppings(this)" name="topping1" >
                 <option value="value1" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
               </select>
-              <select name="select" data-topping2>
+              <select class="topings" onchange="toppings(this)" name="topping2">
                 <option value="value1" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
               </select>
-              <select name="select" data-topping3>
+              <select  class="topings" onchange="toppings(this)" name="topping3">
                 <option value="value1" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
