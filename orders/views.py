@@ -49,6 +49,8 @@ def add_topings_view(request):
         try:
             order_item_pk = int(request.POST["order_item_pk"])
             topping_pk = int(request.POST["topping_pk"])
+а вот тут мы должны теперь пройти по словарю и перезаписать выбранные топинги
+новый параметр topping_pk_array
             order_item = OrderItem.objects.get(pk=order_item_pk)
             topping = Topping.objects.get(pk=topping_pk)
         except KeyError:

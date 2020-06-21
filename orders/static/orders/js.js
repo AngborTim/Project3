@@ -18,11 +18,17 @@ if (document.querySelector('#user_account')){
 
 
 function toppings(elm){
-  alert(elm.value + ' ' + elm.parentElement.dataset.order_item);
+  //alert(elm.value + ' ' + elm.parentElement.dataset.order_item);
   var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+  var topings_lists = elm.parentElement.getElementsByClassName("topings")
+  var toppings_array = {};
+  for (var i = 0; i < topings_lists.length; i++) {
+    toppings_array[i] = topings_lists[i].value;
+  }
+
   $.post(add_topings, {
     order_item_pk: elm.parentElement.dataset.order_item,
-    topping_pk: elm.value,
+    topping_pk_array: toppings_array,
     csrfmiddlewaretoken: csrftoken },
     function(){
       document.querySelector('.spinner-border').classList.remove('d-none');
@@ -33,10 +39,9 @@ function toppings(elm){
       // все получилось
       if (data['status'] == "OK"){
         alert('OK');
-        topings_lists = elm.parentElement.getElementsByClassName("topings")
         for (let topings_list of topings_lists) {
           if (topings_list != elm){
-            for (var i=1; i < topings_list.options.length; i++ ){
+            for (let i=1; i < topings_list.options.length; i++ ){
                 topings_list.options[i].disabled = false;
             }
             topings_list.options[elm.selectedIndex].disabled = true;
