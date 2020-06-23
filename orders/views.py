@@ -45,20 +45,26 @@ def remove_item_from_cart_view(request):
         return JsonResponse({"error": "BOO"}, status=400)
 
 def add_topings_view(request):
+    topping_pk_array = request.POST["topping_pk_array"]
+    for topping_pk in topping_pk_array:
+        print(f'{topping_pk}')
+
     if request.is_ajax and request.method == "POST":
         try:
             order_item_pk = int(request.POST["order_item_pk"])
-            topping_pk = int(request.POST["topping_pk"])
-а вот тут мы должны теперь пройти по словарю и перезаписать выбранные топинги
-новый параметр topping_pk_array
+
             order_item = OrderItem.objects.get(pk=order_item_pk)
-            topping = Topping.objects.get(pk=topping_pk)
+            #order_item.topping.clear()
         except KeyError:
             return render(request, "orders/error.html", {"message": "No selection"})
         except OrderItem.DoesNotExist:
             return render(request, "orders/error.html", {"message": "No order item"})
         except Topping.DoesNotExist:
             return render(request, "orders/error.html", {"message": "No topping item"})
+
+
+
+            #topping = Topping.objects.get(pk=topping_pk)
 
         if order_item.topping.all().count() < order_item.item.has_extra_toppings:
             print (f'{order_item.topping.all().count()} less {order_item.item.has_extra_toppings}')

@@ -28,9 +28,10 @@ function toppings(elm){
 
   $.post(add_topings, {
     order_item_pk: elm.parentElement.dataset.order_item,
-    topping_pk_array: toppings_array,
+    topping_pk_array: toppings_array.serialize(),
     csrfmiddlewaretoken: csrftoken },
     function(){
+      alert(toppings_array)
       document.querySelector('.spinner-border').classList.remove('d-none');
       document.querySelector('main').setAttribute( 'style', 'position: fixed; opacity:50% !important');
     })
