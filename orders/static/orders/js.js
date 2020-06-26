@@ -1,6 +1,7 @@
   document.addEventListener('DOMContentLoaded', function(){
 add_deletion();
 add_menu();
+add_info();
 
 var hh = window.innerHeight - document.getElementById('foo').clientHeight - document.getElementById('nav').clientHeight - document.getElementById('extra_nav').clientHeight  + 'px';
  $('#scrl').css('height', hh);
@@ -18,49 +19,50 @@ if (document.querySelector('#user_account')){
 
 
 function toppings(elm){
-  //alert(elm.value + ' ' + elm.parentElement.dataset.order_item);
-  var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
-  var topings_lists = elm.parentElement.getElementsByClassName("topings")
-  var toppings_array = {};
-  for (var i = 0; i < topings_lists.length; i++) {
-    toppings_array[i] = topings_lists[i].value;
-  }
+  elm.addEventListener("change", function(){
+    var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+    var topings_lists = elm.parentElement.getElementsByClassName("topings")
+    var toppings_array = {};
+    for (var i = 0; i < topings_lists.length; i++) {
+      toppings_array[i] = topings_lists[i].value;
+    }
 
-  $.post(add_topings, {
-    order_item_pk: elm.parentElement.dataset.order_item,
-    topping_pk_array: toppings_array.serialize(),
-    csrfmiddlewaretoken: csrftoken },
-    function(){
-      alert(toppings_array)
-      document.querySelector('.spinner-border').classList.remove('d-none');
-      document.querySelector('main').setAttribute( 'style', 'position: fixed; opacity:50% !important');
-    })
-    .done(function( data ) {
+    $.post(add_topings, {
+        'order_item_pk':  elm.parentElement.dataset.order_item,
+        'csrfmiddlewaretoken': csrftoken,
+        'topping_pk_array': JSON.stringify(toppings_array)
+    } ,
+      function(){
+        document.querySelector('.spinner-border').classList.remove('d-none');
+        document.querySelector('main').setAttribute( 'style', 'position: fixed; opacity:50% !important');
+      })
+      .done(function( data ) {
 
-      // все получилось
-      if (data['status'] == "OK"){
-        alert('OK');
-        for (let topings_list of topings_lists) {
-          if (topings_list != elm){
-            for (let i=1; i < topings_list.options.length; i++ ){
-                topings_list.options[i].disabled = false;
+        // все получилось
+        if (data['status'] == "OK"){
+          alert('OK');
+
+          for (let topings_list of topings_lists) {
+            if (topings_list != elm){
+              topings_list.options[elm.dataset.previos].disabled = false
+              topings_list.options[elm.selectedIndex].disabled = true;
             }
-            topings_list.options[elm.selectedIndex].disabled = true;
           }
+          elm.dataset.previos = elm.selectedIndex;
+          console.log(elm.dataset.previos);
         }
-      }
-      else {
-        alert(data['status']);
-      }
-  })
-  .always(function(){
-    document.querySelector('.spinner-border').classList.add('d-none');
-    document.querySelector('main').setAttribute( 'style',  'position: fixed; opacity:100% !important');
+        else {
+          alert(data['status']);
+        }
+    })
+    .always(function(){
+      document.querySelector('.spinner-border').classList.add('d-none');
+      document.querySelector('main').setAttribute( 'style',  'position: fixed; opacity:100% !important');
+    })
   })
 }
 
 function deletion(elm){
-
   elm.addEventListener("click", function(){
      var to_delete = document.querySelector('#item-'+elm.dataset.item_id);
      to_delete.style.animationPlayState = 'running';
@@ -104,6 +106,14 @@ function add_deletion(){
   });
 }
 
+function add_info(){
+  document.querySelectorAll('.btn_info').forEach(btn_info => {
+    btn_info.onclick = () => {
+      $("#pizza_info_modal").modal("show");
+      $("#pizza_info_modal").find('#pizza_info_text').text(btn_info.dataset.item_info);
+    }
+  })
+}
 
 function add_menu(){
   document.querySelectorAll('.btn_add').forEach(btn_add => {
@@ -145,6 +155,7 @@ function add_menu(){
             item_td_del.appendChild(btn);
 
             var item_td = document.createElement("td");
+            item_td.dataset.order_item = data['result'].item_id;
             if (data['result'].type == 'Pasta' || data['result'].type ==  'Salads'){
               var txt = data['result'].type + '"' + data['result'].name + '"';
             }
@@ -163,10 +174,14 @@ function add_menu(){
               var brr = document.createElement("br");
               item_td.appendChild(brr);
               var topings_selector = document.createElement("select");
+              topings_selector.classList.add("topings");
+              topings_selector.dataset.previos = 0;
+
               var def = document.createElement("option");
               def.disabled = "disabled";
               def.selected = "selected";
               def.innerHTML = "Choose toppings";
+              def.value = "null";
               topings_selector.appendChild(def);
 
               for (var i = 0; i < data['toppings'].length; i++){
@@ -178,21 +193,11 @@ function add_menu(){
                   }
                 itm.innerHTML = price_and_name;
                 topings_selector.appendChild(itm);
-                //alert(data['toppings'][i]['name']);
               }
               item_td.appendChild(topings_selector);
+              topings_selector.onchange = toppings(topings_selector);
               top -= 1;
             }
-
-
-            //[0]
-            //<select name="select" data-topping1>
-            //  <option value="value1" disabled selected>Choose toppings</option>
-            //
-            //  {% for top in pizza_topings %}
-            //  {% endfor%}
-            //</select>
-            //extratop
 
             var item_td_price = document.createElement("td");
             var price_text = document.createTextNode("$" + data['result'].price);

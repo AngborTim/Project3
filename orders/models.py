@@ -36,11 +36,12 @@ class Item(models.Model):
     itemtype = models.ForeignKey(ItemType, on_delete=models.CASCADE, related_name="itemtype")
     name = models.CharField(max_length=64)
     has_extra_toppings = models.IntegerField(default=0)
+    comments = models.CharField(max_length=128, default='no comments')
     priceSmall = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     priceLarge = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f"{self.itemtype} {self.name} {self.has_extra_toppings} {self.priceSmall} {self.priceLarge}"
+        return f"{self.itemtype} {self.name} {self.comments} {self.has_extra_toppings}  {self.priceSmall} {self.priceLarge}"
 
 class Topping(models.Model):
     itemtype = models.ForeignKey(ItemType, on_delete=models.CASCADE, related_name="toppingtype")

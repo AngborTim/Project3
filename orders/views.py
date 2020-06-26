@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Sum, FloatField
+import json
 
 from .models import ItemType, Item, Order, OrderItem, Topping, TMP_ID, Size
 
@@ -45,16 +46,12 @@ def remove_item_from_cart_view(request):
         return JsonResponse({"error": "BOO"}, status=400)
 
 def add_topings_view(request):
-    topping_pk_array = request.POST["topping_pk_array"]
-    for topping_pk in topping_pk_array:
-        print(f'{topping_pk}')
-
     if request.is_ajax and request.method == "POST":
         try:
+            topping_pk_array = request.POST["topping_pk_array"]
             order_item_pk = int(request.POST["order_item_pk"])
-
             order_item = OrderItem.objects.get(pk=order_item_pk)
-            #order_item.topping.clear()
+            order_item.topping.clear()
         except KeyError:
             return render(request, "orders/error.html", {"message": "No selection"})
         except OrderItem.DoesNotExist:
@@ -62,21 +59,27 @@ def add_topings_view(request):
         except Topping.DoesNotExist:
             return render(request, "orders/error.html", {"message": "No topping item"})
 
-
-
+        a = json.loads(topping_pk_array)
+        print(f'{a}')
+        for val in a.values():
+            if val != 'null':
+                topping = Topping.objects.get(pk=int(val))
+                if not OrderItem.objects.filter(topping=topping).exists():
+                    order_item.topping.add(topping)
+        return JsonResponse({"status":"OK"}, status=200)
             #topping = Topping.objects.get(pk=topping_pk)
 
-        if order_item.topping.all().count() < order_item.item.has_extra_toppings:
-            print (f'{order_item.topping.all().count()} less {order_item.item.has_extra_toppings}')
-            if not OrderItem.objects.filter(topping=topping).exists():
-                order_item.topping.add(topping)
-                return JsonResponse({"status":"OK"}, status=200)
-            else:
-                print (f'EXISTS {topping}')
-                return JsonResponse({"status":"EXISTS"}, status=200)
-        else:
-            print (f'{order_item.topping.all().count()} enougth {order_item.item.has_extra_toppings}')
-            return JsonResponse({"status":"MAX TOPPINGS"}, status=200)
+        #if order_item.topping.all().count() < order_item.item.has_extra_toppings:
+        #    print (f'{order_item.topping.all().count()} less {order_item.item.has_extra_toppings}')
+        #    if not OrderItem.objects.filter(topping=topping).exists():
+        #        order_item.topping.add(topping)
+        #        return JsonResponse({"status":"OK"}, status=200)
+        #    else:
+        #        print (f'EXISTS {topping}')
+        #        return JsonResponse({"status":"EXISTS"}, status=200)
+        #else:
+        #    print (f'{order_item.topping.all().count()} enougth {order_item.item.has_extra_toppings}')
+        #    return JsonResponse({"status":"MAX TOPPINGS"}, status=200)
 
 
 
@@ -129,6 +132,7 @@ def index(request):
         "Subs"           : Item.objects.filter(itemtype__name='Subs').order_by('name'),
         "Dinner Platters": Item.objects.filter(itemtype__name='Dinner Platters').order_by('name')
     }
+
     s_p = {
         "Pasta"           : Item.objects.filter(itemtype__name='Pasta').order_by('name'),
         "Salads": Item.objects.filter(itemtype__name='Salads').order_by('name')
@@ -138,7 +142,9 @@ def index(request):
         "items"         : Item.objects.all(),
         "allpizza"      : allpizza,
         "salads_pasta"  : s_p,
-        "pizza_topings" : Topping.objects.filter(itemtype__name='Toppings (pizza)').order_by('name')
+        "pizza_toppings": Topping.objects.filter(itemtype__name='Toppings (pizza)').values("pk", "itemtype__name", "name", "price").order_by('name'),
+        "subs_toppings" : Topping.objects.filter(itemtype__name='Extra for subs').values("pk", "itemtype__name", "name", "price"),
+        "steak_and_cheese": Topping.objects.filter(itemtype__name__in=['Extra for subs','Extra for Steak + Cheese']).values("pk", "itemtype__name", "name", "price").order_by('name')
     }
 
     if not request.user.is_authenticated:

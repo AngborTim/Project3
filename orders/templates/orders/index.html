@@ -35,7 +35,15 @@
           </tr>
             {% for piz in pza %}
             <tr>
-              <td>{{piz.name}}</td>
+              <td>
+                {% if key == 'Regular Pizza' or key == 'Sicilian Pizza' or piz.name == 'Steak + Cheese' %}
+                <div class="d-flex justify-content-between">{{piz.name}}
+                  <button type="button" data-item_info="{{piz.comments}}" class="btn_info badge badge-success badge-pill">Info</button>
+                </div>
+                {% else %}
+                  {{piz.name}}
+                {% endif %}
+              </td>
               <td>
                 <div class="d-flex justify-content-between">{{piz.priceSmall}}
                   <button type="button" data-item_pk="{{piz.pk}}" data-item_size="1" data-item_price="{{piz.priceSmall}}" class="btn_add badge badge-primary badge-pill">Add</button>
@@ -91,41 +99,54 @@
                 <span title="Delete an item">&times;</span>
               </button>
             </td>
-            <td>{{item.itemSize.sizeName}} {{item.item.itemtype.name}} {{item.item.name}}</td>
+            <td>{{item.itemSize.sizeName}} {{item.item.itemtype.name}} {{item.item.name}}
+
+
+<br>
+              {% with ''|center:item.item.has_extra_toppings as range %}
+              {% for _ in range %}
+                  {{ forloop.counter }}
+              {% endfor %}
+              {% endwith %}
+
+<!--              {% for topping in pizza_toppings %}
+              {{topping}}<br>
+              {% endfor %}-->
+            </td>
             <td>${{item.itemPrice}}</td>
           </tr>
           {% endfor %}
         {% endif %}
-          <tr>
+  <!--        <tr>
             <td>
               <button type="button" class="close delete_item" data-item_id="1">
                 <span title="Delete an item">&times;</span>
               </button>
             </td>
             <td data-order_item='264'>Pizza<br />
-              <select class="topings" onchange="toppings(this)" name="topping1" >
+              <select class="topings" onchange="alert(this.selectedIndex)">
                 <option value="null" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
               </select>
-              <select class="topings" onchange="toppings(this)" name="topping2">
+              <select class="topings" onchange="toppings(this)">
                 <option value="null" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
               </select>
-              <select  class="topings" onchange="toppings(this)" name="topping3">
-                <option value="null " disabled selected>Choose toppings</option>
+              <select  class="topings" onchange="toppings(this)">
+                <option value="null" disabled selected>Choose toppings</option>
                 {% for top in pizza_topings %}
                   <option value="{{ top.pk }}">{{ top.name}}</option>
                 {% endfor%}
               </select>
-
 
             </td>
             <td>$10</td>
           </tr>
+        -->
 
         </table>
 
@@ -133,6 +154,28 @@
   </div>
 </main>
 
+<!-- INFO MODAL -->
+
+<div class="modal fade" id="pizza_info_modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_label">Your pizza info</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <p id="pizza_info_text"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INFO MODAL END -->
 
 <script type="text/javascript">
   var user_id = {{ user_id }};
