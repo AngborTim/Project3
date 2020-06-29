@@ -1,4 +1,5 @@
 {% extends "orders/base.html" %}
+{% load toppings_info %}
 {% block title %}Pizza Houzze{% endblock %}
 
 {% block main %}
@@ -45,8 +46,11 @@
                 {% endif %}
               </td>
               <td>
-                <div class="d-flex justify-content-between">{{piz.priceSmall}}
+                <div class="d-flex justify-content-between">
+                  {% if piz.priceSmall != 0 %}
+                  {{piz.priceSmall}}
                   <button type="button" data-item_pk="{{piz.pk}}" data-item_size="1" data-item_price="{{piz.priceSmall}}" class="btn_add badge badge-primary badge-pill">Add</button>
+                  {% endif %}
                 </div>
               </td>
               <td>
@@ -99,54 +103,50 @@
                 <span title="Delete an item">&times;</span>
               </button>
             </td>
-            <td>{{item.itemSize.sizeName}} {{item.item.itemtype.name}} {{item.item.name}}
 
+            <td id = '{{item.pk}}' data-order_item='{{item.pk}}'>
+              {{item.itemSize.sizeName}} {{item.item.itemtype.name}} "{{item.item.name}}"
 
-<br>
               {% with ''|center:item.item.has_extra_toppings as range %}
-              {% for _ in range %}
-                  {{ forloop.counter }}
-              {% endfor %}
-              {% endwith %}
+                {% for _ in range %}
+                  {% toppings_pk item.pk forloop.counter0 as topping_value %}
+                  <select id="i-{{item.pk}}-{{ forloop.counter0 }}" class="topings" data-previos="0">
 
-<!--              {% for topping in pizza_toppings %}
-              {{topping}}<br>
-              {% endfor %}-->
+                    {% if item.item.itemtype.name != 'Subs' %}
+                    <option value="null" disabled>Choose toppings</option>
+                    {% else %}
+                    <option value="null">Choose toppings</option>
+                    {% endif %}
+                    {% if item.item.itemtype.name == 'Subs' and item.item.name != 'Steak + Cheese'%}
+                      {% for top in subs_toppings %}
+                        <option value="{{ top.pk }}">{{ top.name}} + {{top.price}}</option>
+                      {% endfor%}
+                    {% elif item.item.name == 'Steak + Cheese'%}
+                      {% for top in steak_and_cheese %}
+                        <option value="{{ top.pk }}">{{ top.name}} + {{top.price}}</option>
+                      {% endfor%}
+                    {% else %}
+                      {% for top in pizza_toppings %}
+                        <option value="{{ top.pk }}">{{ top.name}}</option>
+                      {% endfor%}
+                    {% endif%}
+                  </select>
+                  {% if topping_value %}
+                    <script>
+                      document.getElementById('i-{{item.pk}}-{{ forloop.counter0 }}').value = {{topping_value}};
+                    </script>
+                  {% endif %}
+
+                {% endfor %}
+              {% endwith %}
+              <script>
+                disable_doubles(document.getElementById('{{item.pk}}'), 0);
+              </script>
             </td>
-            <td>${{item.itemPrice}}</td>
+            <td id="price{{item.pk}}">${{item.totall_price}}</td>
           </tr>
           {% endfor %}
         {% endif %}
-  <!--        <tr>
-            <td>
-              <button type="button" class="close delete_item" data-item_id="1">
-                <span title="Delete an item">&times;</span>
-              </button>
-            </td>
-            <td data-order_item='264'>Pizza<br />
-              <select class="topings" onchange="alert(this.selectedIndex)">
-                <option value="null" disabled selected>Choose toppings</option>
-                {% for top in pizza_topings %}
-                  <option value="{{ top.pk }}">{{ top.name}}</option>
-                {% endfor%}
-              </select>
-              <select class="topings" onchange="toppings(this)">
-                <option value="null" disabled selected>Choose toppings</option>
-                {% for top in pizza_topings %}
-                  <option value="{{ top.pk }}">{{ top.name}}</option>
-                {% endfor%}
-              </select>
-              <select  class="topings" onchange="toppings(this)">
-                <option value="null" disabled selected>Choose toppings</option>
-                {% for top in pizza_topings %}
-                  <option value="{{ top.pk }}">{{ top.name}}</option>
-                {% endfor%}
-              </select>
-
-            </td>
-            <td>$10</td>
-          </tr>
-        -->
 
         </table>
 

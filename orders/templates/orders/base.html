@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -64,6 +63,7 @@
               <label for="password">Password</label>
               <input type="password" class="form-control" id="password" name="password" placeholder="Password">
             </div>
+            <input id="tmp_id" name="tmp_id" type="hidden" value="{{user_id}}">
             <button type="submit" class="btn btn-outline-success">Sign in</button>
           </form>
           <div class="dropdown-divider"></div>

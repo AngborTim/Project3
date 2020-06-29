@@ -13,21 +13,18 @@ def get_order(request):
     # тут надо добавить проверку на статус заказа, так как
     #  кроме факта наличия заказа с ИД пользователя, еще не значит, что это тот самый заказа
     # мы ж структуру базы изменили и теперь все заказы в одной таблице
-    user_for_order = get_user(request)
-    order_record, created = Order.objects.filter(user_id=user_for_order).get_or_create(user_id=user_for_order)
+    user_for_order = request.session['user_id']
+
+    если пользователь уже существует с темп ид, то проверяем есть ли у него баскет
+    если баскет
+
+    user = User.objects.get(pk=user_for_order)
+    if user:
+        user.profile.userTempId = request.session['user_id']
+            user.save()
+    order_record, created = Order.objects.filter(user_id=user_for_order).get_or_create(user_id=user_for_order, order_id=)
     return order_record
 
-def get_user(request):
-    if request.user.is_authenticated:
-        return str(request.user.pk)
-    else:
-        # не проверяем, так как
-        # в принципе такой ситуации не может быть, что юзер запустил добавление
-        # заказа, и при этом ему не был назначени user_id
-        if request.method == "POST":
-            return request.POST["user_id"]
-        else:
-            return request.session['user_id']
 
 def remove_item_from_cart_view(request):
     if request.is_ajax and request.method == "POST":
@@ -51,6 +48,10 @@ def add_topings_view(request):
             topping_pk_array = request.POST["topping_pk_array"]
             order_item_pk = int(request.POST["order_item_pk"])
             order_item = OrderItem.objects.get(pk=order_item_pk)
+            #print (f"totall before minus {order_item.order_id.total}")
+            order_item.order_id.total -= order_item.topings_totall
+            order_item.order_id.save()
+            #print (f"change totall minus {order_item.order_id.total} with top totall {order_item.topings_totall}")
             order_item.topping.clear()
         except KeyError:
             return render(request, "orders/error.html", {"message": "No selection"})
@@ -60,28 +61,16 @@ def add_topings_view(request):
             return render(request, "orders/error.html", {"message": "No topping item"})
 
         a = json.loads(topping_pk_array)
-        print(f'{a}')
         for val in a.values():
             if val != 'null':
                 topping = Topping.objects.get(pk=int(val))
-                if not OrderItem.objects.filter(topping=topping).exists():
-                    order_item.topping.add(topping)
-        return JsonResponse({"status":"OK"}, status=200)
-            #topping = Topping.objects.get(pk=topping_pk)
+                order_item.topping.add(topping)
+        #print (f"totall before plus {order_item.order_id.total}")
+        order_item.order_id.total += order_item.topings_totall
+        order_item.order_id.save()
+        #print (f"change totall plus {order_item.order_id.total} with top totall {order_item.topings_totall}")
 
-        #if order_item.topping.all().count() < order_item.item.has_extra_toppings:
-        #    print (f'{order_item.topping.all().count()} less {order_item.item.has_extra_toppings}')
-        #    if not OrderItem.objects.filter(topping=topping).exists():
-        #        order_item.topping.add(topping)
-        #        return JsonResponse({"status":"OK"}, status=200)
-        #    else:
-        #        print (f'EXISTS {topping}')
-        #        return JsonResponse({"status":"EXISTS"}, status=200)
-        #else:
-        #    print (f'{order_item.topping.all().count()} enougth {order_item.item.has_extra_toppings}')
-        #    return JsonResponse({"status":"MAX TOPPINGS"}, status=200)
-
-
+        return JsonResponse({"status":"OK", "total_order": order_item.order_id.total, "total_item": order_item.totall_price, "item_pk" : order_item_pk}, status=200)
 
 def add_to_cart_view(request):
     if request.is_ajax and request.method == "POST":
@@ -95,7 +84,7 @@ def add_to_cart_view(request):
 
         new_order = get_order(request)
 
-        new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  Size.objects.get(pk=int(request.POST["size"])), user_id =get_user(request), order_id = new_order)
+        new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  Size.objects.get(pk=int(request.POST["size"])), user_id =request.session['user_id'], order_id = new_order)
         new_order_item.save()
         if 'order_id' not in request.session:
             request.session['order_id'] = new_order.order_id
@@ -151,9 +140,13 @@ def index(request):
         context['user'] = 'none'
         if 'user_id' not in request.session:
             request.session['user_id'] = TMP_ID()
+        context['user_id'] = request.session['user_id']
     else:
         context['user'] = request.user
-    context['user_id'] = request.session['user_id']
+        context['user_id'] = request.session['user_id']
+        user = User.objects.get(pk=request.user.pk)
+        user.profile.userTempId = request.session['user_id']
+        user.save()
 
     if 'order_id' in request.session:
         c_order = get_order(request)
@@ -173,9 +166,12 @@ def cabinet_view(request):
 def signin_view(request):
     username = request.POST["username"]
     password = request.POST["password"]
+    temp_id  = request.POST["tmp_id"]
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
+        user.profile.userTempId = temp_id
+        user.save()
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "index", {"message": "Invalid credentials."})

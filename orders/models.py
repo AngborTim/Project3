@@ -5,7 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import F, Sum
 
 import random
 
@@ -16,6 +16,7 @@ def TMP_ID():
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     userTempId = models.CharField(max_length=64, blank=True)
+    userBasket = models.CharField(max_length=64, blank=True)
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -65,6 +66,7 @@ class Size(models.Model):
     def __str__(self):
         return f"{self.sizeName}"
 
+
 class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="item")
     topping = models.ManyToManyField(Topping, blank=True, related_name="topping")
@@ -72,9 +74,26 @@ class OrderItem(models.Model):
     itemSize = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="size")
     user_id = models.CharField(max_length=64)
     order_id = models.ForeignKey('Order', on_delete=models.CASCADE, related_name="order")
+    item_total = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
+
+    @property
+    def totall_price(self):
+        if self.topping.aggregate(total = models.Sum('price'))['total'] != None:
+            return self.itemPrice + self.topping.aggregate(total = models.Sum('price'))['total']
+        else:
+            return self.itemPrice
+
+    @property
+    def topings_totall(self):
+        t = self.topping.aggregate(total = models.Sum('price'))['total']
+        if t != None:
+            return t
+        else:
+            return 0
+
 
     def __str__(self):
-        return f"{self.pk} ORDER: {self.order_id} {self.item} {self.topping} {self.itemPrice} {self.itemSize} {self.user_id} "
+        return f"{self.totall_price} {self.topings_totall} {self.pk} ORDER: {self.order_id} {self.item} {self.topping} {self.itemPrice} {self.itemSize} {self.user_id} "
 
 class OrderStatus(models.Model):
     orderType = models.CharField(max_length=64)

@@ -2,6 +2,7 @@
 add_deletion();
 add_menu();
 add_info();
+add_toppings_change();
 
 var hh = window.innerHeight - document.getElementById('foo').clientHeight - document.getElementById('nav').clientHeight - document.getElementById('extra_nav').clientHeight  + 'px';
  $('#scrl').css('height', hh);
@@ -17,6 +18,28 @@ if (document.querySelector('#user_account')){
   }
 });
 
+function add_toppings_change(){
+    document.querySelectorAll('.topings').forEach(function(top_elm){
+      toppings(top_elm);
+    });
+}
+
+
+function disable_doubles(item, selector){
+  var selectors = item.getElementsByClassName("topings")
+  for (var z = 0; z < selectors.length; z++ ) {
+    if (z != selector && selectors[selector] && selectors[selector].value != 'null'){
+      selectors[z].options[selectors[selector].dataset.previos].disabled = false
+      selectors[z].options[selectors[selector].selectedIndex].disabled = true;
+    }
+    if (selectors[selector]){
+      selectors[selector].dataset.previos = selectors[selector].selectedIndex;
+    }
+  }
+  if (selector < selectors.length){
+    disable_doubles(item, selector+1);
+  }
+}
 
 function toppings(elm){
   elm.addEventListener("change", function(){
@@ -40,16 +63,17 @@ function toppings(elm){
 
         // все получилось
         if (data['status'] == "OK"){
-          alert('OK');
-
+          document.getElementById('price'+data['item_pk']).innerHTML = '$' + parseFloat(data['total_item']).toFixed(2);
+          document.getElementById('total').innerHTML = ' Total: $' + parseFloat(data['total_order']).toFixed(2);
           for (let topings_list of topings_lists) {
             if (topings_list != elm){
               topings_list.options[elm.dataset.previos].disabled = false
-              topings_list.options[elm.selectedIndex].disabled = true;
+              if (elm.value != "null"){
+                topings_list.options[elm.selectedIndex].disabled = true;
+              }
             }
           }
-          elm.dataset.previos = elm.selectedIndex;
-          console.log(elm.dataset.previos);
+            elm.dataset.previos = elm.selectedIndex;
         }
         else {
           alert(data['status']);
@@ -163,13 +187,12 @@ function add_menu(){
               var txt = data['result'].size[0].toUpperCase() + data['result'].size.slice(1)+ ' "' + data['result'].type+ '" '+ data['result'].name;
             }
             else {
-              var txt = data['result'].size[0].toUpperCase() + data['result'].size.slice(1)+ ' "' + data['result'].type+ '"';
+              var txt = data['result'].size[0].toUpperCase() + data['result'].size.slice(1)+ ' ' + data['result'].type + ' "' + data['result'].name+ '"';
             }
             var new_item = document.createTextNode( txt );
             item_td.appendChild(new_item);
             // добавляем столько дропдаунов, сколько позволяет item
             var top = data['result'].extratop;
-
             while (top > 0) {
               var brr = document.createElement("br");
               item_td.appendChild(brr);
@@ -178,7 +201,9 @@ function add_menu(){
               topings_selector.dataset.previos = 0;
 
               var def = document.createElement("option");
-              def.disabled = "disabled";
+              if (data['result'].type != 'Subs'){
+                def.disabled = "disabled";
+              }
               def.selected = "selected";
               def.innerHTML = "Choose toppings";
               def.value = "null";
@@ -200,6 +225,7 @@ function add_menu(){
             }
 
             var item_td_price = document.createElement("td");
+            item_td_price.id= 'price' + data['result'].item_id;
             var price_text = document.createTextNode("$" + data['result'].price);
             item_td_price.appendChild(price_text);
 
