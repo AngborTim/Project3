@@ -1,28 +1,35 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.core import serializers
 from django.contrib.auth.models import User
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Sum, FloatField
 import json
 
-from .models import ItemType, Item, Order, OrderItem, Topping, TMP_ID, Size
+from .models import ItemType, Item, Order, OrderItem, OrderStatus, Topping, Size #TMP_ID,
 
-def get_order(request):
-    # тут надо добавить проверку на статус заказа, так как
-    #  кроме факта наличия заказа с ИД пользователя, еще не значит, что это тот самый заказа
-    # мы ж структуру базы изменили и теперь все заказы в одной таблице
+def get_order(request, address, type, id):
+    # если мы добрались до создания или получения заказа, то session['user_id']
+    # должен по-любому существовать
     user_for_order = request.session['user_id']
+    if address == "show":
+        if type == "basket":
+            try:
+                order_record = Order.objects.get(user_id=user_for_order, order_status__orderType='In basket')
+            except:
+                order_record = 'nill'
+        if type == "all":
+            order_record = Order.objects.filter(user_id=user_for_order)
+        if type == "one":
+            order_record = Order.objects.get(pk=id)
+    if address == "add" and type == "basket":
+    # создаем или получаем заказ-корзину user_id
+        order_record, created = Order.objects.filter(user_id=user_for_order).get_or_create(user_id=user_for_order, order_status__orderType='In basket')
+        if 'order_id' not in request.session:
+            request.session['order_id'] = order_record.pk
 
-    если пользователь уже существует с темп ид, то проверяем есть ли у него баскет
-    если баскет
-
-    user = User.objects.get(pk=user_for_order)
-    if user:
-        user.profile.userTempId = request.session['user_id']
-            user.save()
-    order_record, created = Order.objects.filter(user_id=user_for_order).get_or_create(user_id=user_for_order, order_id=)
     return order_record
 
 
@@ -31,7 +38,7 @@ def remove_item_from_cart_view(request):
         item_id = int(request.POST['item_id'])
         order_id = int(request.POST['order_id'])
         z = OrderItem.objects.filter(pk=item_id).delete()
-        order = Order.objects.get(order_id=order_id)
+        order = Order.objects.get(pk=order_id)
         if OrderItem.objects.filter(order_id=order):
             summm = OrderItem.objects.filter(order_id=order).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
         else:
@@ -48,10 +55,8 @@ def add_topings_view(request):
             topping_pk_array = request.POST["topping_pk_array"]
             order_item_pk = int(request.POST["order_item_pk"])
             order_item = OrderItem.objects.get(pk=order_item_pk)
-            #print (f"totall before minus {order_item.order_id.total}")
             order_item.order_id.total -= order_item.topings_totall
             order_item.order_id.save()
-            #print (f"change totall minus {order_item.order_id.total} with top totall {order_item.topings_totall}")
             order_item.topping.clear()
         except KeyError:
             return render(request, "orders/error.html", {"message": "No selection"})
@@ -65,10 +70,8 @@ def add_topings_view(request):
             if val != 'null':
                 topping = Topping.objects.get(pk=int(val))
                 order_item.topping.add(topping)
-        #print (f"totall before plus {order_item.order_id.total}")
         order_item.order_id.total += order_item.topings_totall
         order_item.order_id.save()
-        #print (f"change totall plus {order_item.order_id.total} with top totall {order_item.topings_totall}")
 
         return JsonResponse({"status":"OK", "total_order": order_item.order_id.total, "total_item": order_item.totall_price, "item_pk" : order_item_pk}, status=200)
 
@@ -82,16 +85,16 @@ def add_to_cart_view(request):
         except Item.DoesNotExist:
             return render(request, "orders/error.html", {"message": "No item"})
 
-        new_order = get_order(request)
+        #создаем или получаем текущий заказ-корзину
+        new_order = get_order(request, 'add', 'basket', 'nill')
 
         new_order_item = OrderItem(item = add_item, itemPrice = request.POST["price"], itemSize =  Size.objects.get(pk=int(request.POST["size"])), user_id =request.session['user_id'], order_id = new_order)
         new_order_item.save()
-        if 'order_id' not in request.session:
-            request.session['order_id'] = new_order.order_id
+
         summm = OrderItem.objects.filter(order_id=new_order).aggregate(Sum('itemPrice', output_field=FloatField()))['itemPrice__sum']
         new_order.total = summm
         new_order.save()
-        a = {   "order_id": new_order.order_id,
+        a = {   "order_id": new_order.pk,
                 "item_id" : new_order_item.pk,
                 "type"    : add_item.itemtype.name,
                 "name"    : add_item.name,
@@ -114,44 +117,52 @@ def add_to_cart_view(request):
     else:
         return JsonResponse({"error": "BOO"}, status=400)
 
-def index(request):
+
+
+def allpizza():
     allpizza = {
         "Regular Pizza"  : Item.objects.filter(itemtype__name='Regular Pizza'),
         "Sicilian Pizza" : Item.objects.filter(itemtype__name='Sicilian Pizza'),
         "Subs"           : Item.objects.filter(itemtype__name='Subs').order_by('name'),
         "Dinner Platters": Item.objects.filter(itemtype__name='Dinner Platters').order_by('name')
     }
+    return allpizza
 
+def s_p():
     s_p = {
-        "Pasta"           : Item.objects.filter(itemtype__name='Pasta').order_by('name'),
-        "Salads": Item.objects.filter(itemtype__name='Salads').order_by('name')
+        "Pasta"   : Item.objects.filter(itemtype__name='Pasta').order_by('name'),
+        "Salads"  : Item.objects.filter(itemtype__name='Salads').order_by('name')
     }
+    return s_p
+
+def index(request):
+    if not request.user.is_authenticated:
+        context = {'user': 'none'}
+        return render(request, "orders/login.html", context)
+    else:
+        user_id = request.user.id
+        request.session['user_id'] = user_id
 
     context = {
-        "items"         : Item.objects.all(),
-        "allpizza"      : allpizza,
-        "salads_pasta"  : s_p,
-        "pizza_toppings": Topping.objects.filter(itemtype__name='Toppings (pizza)').values("pk", "itemtype__name", "name", "price").order_by('name'),
-        "subs_toppings" : Topping.objects.filter(itemtype__name='Extra for subs').values("pk", "itemtype__name", "name", "price"),
-        "steak_and_cheese": Topping.objects.filter(itemtype__name__in=['Extra for subs','Extra for Steak + Cheese']).values("pk", "itemtype__name", "name", "price").order_by('name')
-    }
-
-    if not request.user.is_authenticated:
-        context['user'] = 'none'
-        if 'user_id' not in request.session:
-            request.session['user_id'] = TMP_ID()
-        context['user_id'] = request.session['user_id']
-    else:
-        context['user'] = request.user
-        context['user_id'] = request.session['user_id']
-        user = User.objects.get(pk=request.user.pk)
-        user.profile.userTempId = request.session['user_id']
-        user.save()
+        "items"           : Item.objects.all(),
+        "allpizza"        : allpizza(),
+        "salads_pasta"    : s_p(),
+        "pizza_toppings"  : Topping.objects.filter(itemtype__name='Toppings (pizza)').values("pk", "itemtype__name", "name", "price").order_by('name'),
+        "subs_toppings"   : Topping.objects.filter(itemtype__name='Extra for subs').values("pk", "itemtype__name", "name", "price"),
+        "steak_and_cheese": Topping.objects.filter(itemtype__name__in=['Extra for subs','Extra for Steak + Cheese']).values("pk", "itemtype__name", "name", "price").order_by('name'),
+        "user"            : request.user
+        }
 
     if 'order_id' in request.session:
-        c_order = get_order(request)
-        context['total'] = c_order.total
-        context['current_order_list'] = OrderItem.objects.filter(order_id=c_order)
+        # если заказ-корзина начал формироваться то передаем его
+        # в index
+        # заказ создается при добавлении первого пункта заказа в функции add_to_cart_view
+        c_order = get_order(request, 'show', 'basket', 'nill')
+        if c_order != 'nill':
+            context['total'] = c_order.total
+            context['order'] = c_order
+            context['current_order_list'] = OrderItem.objects.filter(order_id=c_order)
+
     return render(request, "orders/index.html", context)
 
 def cabinet_view(request):
@@ -159,19 +170,80 @@ def cabinet_view(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         context = {
-            "user": request.user
+            "user"              : request.user,
+            "pizza_toppings"    : Topping.objects.filter(itemtype__name='Toppings (pizza)').values("pk", "itemtype__name", "name", "price").order_by('name'),
+            "subs_toppings"     : Topping.objects.filter(itemtype__name='Extra for subs').values("pk", "itemtype__name", "name", "price"),
+            "steak_and_cheese"  : Topping.objects.filter(itemtype__name__in=['Extra for subs','Extra for Steak + Cheese']).values("pk", "itemtype__name", "name", "price").order_by('name')
         }
+
+        all_orders = get_order(request, 'show', 'all', 'nill')
+        context['all_orders'] = all_orders
+        basket = get_order(request, 'show', 'basket', 'nill')
+        if basket != 'nill':
+            context['basket'] = basket
+            context['current_order_list'] =  OrderItem.objects.filter(order_id=basket)
+
+        if request.user.is_staff:
+            all_users_orders = Order.objects.all()
+            context['all_users_orders'] = all_users_orders
+
         return render(request, "orders/cabinet.html", context)
+
+def order(request, order_id):
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist:
+        return HttpResponseRedirect(reverse("cabinet"))
+    context = {
+        "order": order,
+        "items": OrderItem.objects.filter(order_id=order)
+        }
+    if request.user.is_staff:
+        order_status = OrderStatus.objects.all()
+        context['order_status'] = order_status
+    return render(request, "orders/order.html", context)
+
+
+def order_placing_view(request):
+    order = get_order(request, 'show', 'basket', 'nill')
+
+    if order.order_status.orderType == 'In basket':
+        new_type = OrderStatus.objects.get(orderType='Placed')
+        order.order_status = new_type
+        order.save()
+    del request.session['order_id']
+
+    return HttpResponseRedirect(reverse("cabinet"))
+
+def change_order_status_view(request):
+    try:
+        id = int(request.POST['order_id'])
+        new_status = int(request.POST['new_status'])
+        order = get_order(request, 'show', 'one', id)
+        new_type = OrderStatus.objects.get(pk=new_status)
+        order.order_status = new_type
+        order.save()
+        return JsonResponse({"status":"OK", "new_status": new_type.orderType}, status=200)
+    except:
+        return JsonResponse({"status":"TROUBLES"}, status=400)
+
+def delete_order_view(request):
+    try:
+        id = int(request.POST['order_id'])
+        order = get_order(request, 'show', 'one', id)
+        order.delete()
+        return JsonResponse({"status":"OK", "was_deleted_id": id}, status=200)
+    except:
+        return JsonResponse({"status":"TROUBLES"}, status=400)
+
 
 def signin_view(request):
     username = request.POST["username"]
     password = request.POST["password"]
-    temp_id  = request.POST["tmp_id"]
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        user.profile.userTempId = temp_id
-        user.save()
+        request.session['user_id'] = user.id
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "index", {"message": "Invalid credentials."})
@@ -189,11 +261,11 @@ def signup_view(request):
     user.save()
     if user is not None:
         login(request, user)
+        request.session['user_id'] = user.id
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "index", {"message": "Problem with signing up."})
 
 def logout_view(request):
-    del request.session['user_id']
     logout(request)
     return HttpResponseRedirect(reverse ("index"))

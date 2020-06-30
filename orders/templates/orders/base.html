@@ -36,49 +36,14 @@
         <span>Pizza Houzze</span></a>
 </div>
 <div class="container-fluid d-flex justify-content-end">
-  <!--<div class="dropdown">
-    <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown" data-display="static">
-      Shopping Cart
-    </button>
-    <div class="dropdown-menu dropdown-menu-right">
-      <a class="dropdown-item" href="#">Open shopping cart</a>
-    <div class="dropdown-divider"></div>
-      <a class="dropdown-item" href="#">Place an order</a>
-    </div>
-  </div>-->
-{% if user == 'none' %}
 
-<div class="dropdown">
-        <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown" data-display="static">
-          Sign in
-        </button>
-        <div class="dropdown-menu  dropdown-menu-right">
-          <form class="px-4 py-3" method="post" action="{% url 'signin' %}">
-            {% csrf_token %}
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input type="text" class="form-control" id="username" name="username" placeholder="Username">
-            </div>
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" class="form-control" id="password" name="password" placeholder="Password">
-            </div>
-            <input id="tmp_id" name="tmp_id" type="hidden" value="{{user_id}}">
-            <button type="submit" class="btn btn-outline-success">Sign in</button>
-          </form>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="" id="signup_btn">New around here? Sign up</a>
-        </div>
-      </div>
+{% if user != 'none' %}
 
-        {% else %}
-
-        <ul class="navbar-nav d-block pl-3" id="user_block">
-          <li id="user_account" class="border nav-item font-weight-bold" data-container="body" data-toggle="popover"><a href="{% url 'cabinet' %}" id="a_l">Hello, {{ user.username }}! <img class="gear" src="{% static 'orders/Gear.ico' %}" alt="Account"></a></li>
-          <li class="nav-item"><a class="nav-link" id="logout" href="{% url 'logout' %}">Log out</a></li>
-        </ul>
-
-        {% endif %}
+    <ul class="navbar-nav d-block pl-3" id="user_block">
+        <li id="user_account" class="border nav-item font-weight-bold" data-container="body" data-toggle="popover"><a href="{% url 'cabinet' %}" id="a_l">Hello, {{ user.username }}! <img class="gear" src="{% static 'orders/Gear.ico' %}" alt="Account"></a></li>
+        <li class="nav-item"><a class="nav-link" id="logout" href="{% url 'logout' %}">Log out</a></li>
+    </ul>
+  {% endif %}
 </div>
       </nav>
 
@@ -139,17 +104,12 @@
 <script type="text/javascript">
 $(document).ready(function(){
 $("#user_account").popover({
-  title: 'Заголовок панели',
-  content: 'Текст панели {{ user.username }}',
+  title: 'Your cabinet',
+  content: '{{ user.username }}, there are your orders, basket etc.',
   trigger: 'hover',
   placement: 'bottom'
 });
 });
-
-document.addEventListener('DOMContentLoaded', function(){
-  document.getElementById('order_header').insertAdjacentHTML('beforeend', {{ user_id }});
-});
-
 
 </script>
 

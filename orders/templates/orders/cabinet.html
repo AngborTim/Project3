@@ -1,4 +1,5 @@
 {% extends "orders/base.html" %}
+{% load toppings_info %}
 {% block title %}Pizza Houzze{% endblock %}
 
 {% block main %}
@@ -6,34 +7,167 @@
   <h1>CABINET</h1>
 
 <ul class="nav nav-tabs" id="cabinet_tabs" role="tablist">
-  {% if not user.is_staff %}
+
   <li class="nav-item" role="presentation">
-    <a class="nav-link active" id="cart_tab" data-toggle="tab" href="#cart" role="tab">Cart</a>
+    <a class="nav-link {% if basket %}show active{% endif%}" id="cart_tab" data-toggle="tab" href="#cart" role="tab">Cart</a>
   </li>
   <li class="nav-item" role="presentation">
-    <a class="nav-link" id="orders_tab" data-toggle="tab" href="#orders" role="tab">Orders</a>
-  </li>
-  {% endif %}
-  <li class="nav-item" role="presentation">
-    <a class="nav-link{% if user.is_staff %} active{% endif %}" id="user_info-tab" data-toggle="tab" href="#user_info" role="tab">User info</a>
+    <a class="nav-link {% if not basket %}show active{% endif%}" id="orders_tab" data-toggle="tab" href="#orders" role="tab">Orders</a>
   </li>
   {% if user.is_staff %}
   <li class="nav-item" role="presentation">
     <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" role="tab">Administrations</a>
   </li>
   {% endif %}
+
+  <!--<li class="nav-item" role="presentation">
+    <a class="nav-link" id="user_info-tab" data-toggle="tab" href="#user_info" role="tab">User info</a>
+  </li>-->
+
 </ul>
 <div class="tab-content" id="myTabContent">
-  {% if not user.is_staff %}
-  <div class="tab-pane fade show active" id="cart" role="tabpanel">CART</div>
-  <div class="tab-pane fade" id="orders" role="tabpanel">ORDERS</div>
-  {% endif %}
-  <div class="tab-pane fade{% if user.is_staff %} show active{% endif %}" id="user_info" role="tabpanel">USER INFO</div>
+
+  <div class="tab-pane fade {% if basket %}show active{% endif%}" id="cart" role="tabpanel">
+{% if basket %}
+
+{% if basket.total %}
+
+<h3>Greate!</h3>
+<h5 class="w-50">This is your order. Please check it, choose all toppings if you are ordering a pizza. Then click "Place order".<br />
+If you want to add something else, return to the <a href="/">Main page</a>.</h5>
+    <table class="table table-sm w-50" id="order_t">
+      <tr class="text-center">
+        <th id="total" class="h2" colspan="2">
+            Total: ${{ basket.total }}
+         </th>
+         <th>
+           <button type="button" data-order_id="{{order.pk}}" data-user_id="{{user.id}}" id="make_order" name="make_order" class="btn btn-success">Place order</button>
+         </th>
+      </tr>
+
+    {% if current_order_list %}
+      {% for item in current_order_list  %}
+      <tr id="item-{{ item.pk }}" class="item_block">
+        <td>
+          <button type="button" class="close delete_item" data-item_id="{{ item.pk }}"  data-order_id = "{{item.order_id.order_id}}">
+            <span title="Delete an item">&times;</span>
+          </button>
+        </td>
+
+        <td id = '{{item.pk}}' data-order_item='{{item.pk}}'>
+          {{item.itemSize.sizeName}} {{item.item.itemtype.name}} "{{item.item.name}}"
+
+          {% with ''|center:item.item.has_extra_toppings as range %}
+            {% for _ in range %}
+              {% toppings_pk item.pk forloop.counter0 as topping_value %}
+              <br><select id="i-{{item.pk}}-{{ forloop.counter0 }}" class="topings" data-type="{{item.item.itemtype.name}}" data-previos="0">
+
+                {% if item.item.itemtype.name != 'Subs' %}
+                <option value="null" disabled>Choose toppings</option>
+                {% else %}
+                <option value="null">Choose toppings</option>
+                {% endif %}
+                {% if item.item.itemtype.name == 'Subs' and item.item.name != 'Steak + Cheese'%}
+                  {% for top in subs_toppings %}
+                    <option value="{{ top.pk }}">{{ top.name}} + {{top.price}}</option>
+                  {% endfor%}
+                {% elif item.item.name == 'Steak + Cheese'%}
+                  {% for top in steak_and_cheese %}
+                    <option value="{{ top.pk }}">{{ top.name}} + {{top.price}}</option>
+                  {% endfor%}
+                {% else %}
+                  {% for top in pizza_toppings %}
+                    <option value="{{ top.pk }}">{{ top.name}}</option>
+                  {% endfor%}
+                {% endif%}
+              </select>
+              {% if topping_value %}
+                <script>
+                  document.getElementById('i-{{item.pk}}-{{ forloop.counter0 }}').value = {{topping_value}};
+                </script>
+              {% endif %}
+
+            {% endfor %}
+          {% endwith %}
+          <script>
+            disable_doubles(document.getElementById('{{item.pk}}'), 0);
+          </script>
+        </td>
+        <td id="price{{item.pk}}">${{item.totall_price}}</td>
+      </tr>
+      {% endfor %}
+    {% endif %}
+
+    </table>
+
+    {% else %}
+      <h4>Hmm... It looks like your cart is empty.<br />
+      Let's go to the <a href="/">Main page</a> to choose some nice stuff :)</h4>
+    {% endif %}
+{% else %}
+Your cart is empty
+
+{% endif %}
+  </div>
+  <div class="tab-pane fade {% if not basket %}show active{% endif%}" id="orders" role="tabpanel">
+
+    {% if all_orders %}
+      {% for order in all_orders %}
+        <a href="{% url 'order' order.pk %}">Order ID: {{order.pk}}; Date: {{order.order_date}}; Totall: ${{order.total}} Status: <span class="badge badge-{% if order.order_status.orderType == "Ready" %}success{% else %}secondary{% endif %}">{{order.order_status}}</span></a><br />
+      {% endfor %}
+    {% else %}
+      You have no orders yet
+    {% endif %}
+  </div>
+
   {% if user.is_staff %}
-  <div class="tab-pane fade" id="admin" role="tabpanel">ADMIN</div>
+  <div class="tab-pane fade" id="admin" role="tabpanel">
+    {% if all_users_orders %}
+      {% for order in all_users_orders %}
+        <a href="{% url 'order' order.pk %}">Order ID: {{order.pk}}; User ID: {{order.user_id}}; Date: {{order.order_date}}; Totall: ${{order.total}} Status: <span class="badge badge-{% if order.order_status.orderType == "Ready" %}success{% elif order.order_status.orderType == "Placed" %}secondary{% else %}warning{% endif %}">{{order.order_status}}</span></a><br />
+      {% endfor %}
+    {% else %}
+      There is no order yet
+    {% endif %}
+
+  </div>
   {% endif %}
+
+<!-- <div class="tab-pane fade" id="user_info" role="tabpanel">USER INFO</div>-->
 </div>
 
 
 </main>
+
+
+<!-- INFO MODAL -->
+
+<div class="modal fade" id="pizza_info_modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_label">Your pizza info</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <p id="pizza_info_text"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INFO MODAL END -->
+
+<script type="text/javascript">
+  var user_id = {{ user.id }};
+  var url_add_to_cart = "{% url 'add_to_cart' %}";
+  var remove_item_from_cart = "{% url 'remove_item_from_cart' %}";
+  var add_topings = "{% url 'add_topings' %}";
+
+</script>
 {% endblock %}

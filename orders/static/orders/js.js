@@ -1,12 +1,43 @@
-  document.addEventListener('DOMContentLoaded', function(){
-add_deletion();
-add_menu();
-add_info();
-add_toppings_change();
+document.addEventListener('DOMContentLoaded', function(){
+  add_deletion();
+  add_menu();
+  add_info();
+  add_toppings_change();
+  if (document.getElementById('checkout')){
+    document.getElementById('checkout').addEventListener('click', function(){
+      if (document.getElementById('checkout').dataset.order_id !=''){
+        window.location.href = "/cabinet";
+      }
+      else{
+        $("#pizza_info_modal").modal("show");
+        $("#pizza_info_modal").find('#pizza_info_text').text('Please, choose something to make an order');
+      }
+    })
+  }
 
-var hh = window.innerHeight - document.getElementById('foo').clientHeight - document.getElementById('nav').clientHeight - document.getElementById('extra_nav').clientHeight  + 'px';
+  if (document.getElementById('make_order')){
+    document.getElementById('make_order').addEventListener('click', function(){
+      var check = true;
+      document.querySelectorAll("select[data-type='Regular Pizza'], select[data-type='Sicilian Pizza']").forEach((select) => {
+        if (select.value == 'null'){
+          check = false;
+        }
+      });
+      if (check){
+        window.location.href = "/order_placing";
+      }
+      else{
+        $("#pizza_info_modal").modal("show");
+        $("#pizza_info_modal").find('#pizza_info_text').text('Please, select all toppings for pizza');
+      }
+    })
+  }
+
+if (document.getElementById('nav') && document.getElementById('extra_nav')) {
+  var hh = window.innerHeight - document.getElementById('foo').clientHeight - document.getElementById('nav').clientHeight - document.getElementById('extra_nav').clientHeight  + 'px';
  $('#scrl').css('height', hh);
  $('#order_list').css('height', hh, 'important');
+}
 
 if (document.querySelector('#signup_btn')){
     signup_click();
@@ -111,6 +142,8 @@ function deletion(elm){
            }
            else{
              document.getElementById('total').innerHTML = 'Cart is empty';
+             //блокируем кнопку размещения заказа
+             document.getElementById('checkout').dataset.order_id = '';
            }
          }
          else {
@@ -159,6 +192,8 @@ function add_menu(){
 
           // все получилось
           if (data['status'] == "OK"){
+            //разблокируем кнопку заказа
+            document.getElementById('checkout').dataset.order_id = data['result'].order_id;
             var cart = document.getElementById('order_t');
             var item_tr = document.createElement("tr");
             item_tr.classList.add("item_block")
@@ -256,8 +291,6 @@ var TMP_ID = function () {
 };
 
 
-
-
 function logout(){
   document.querySelector('#logout').addEventListener(
       'click', function(){
@@ -312,8 +345,9 @@ var ul = document.getElementById("user_block");
 window.addEventListener('resize', window_resize);
 
 function window_resize(){
-
-var h = window.innerHeight - document.getElementById('foo').clientHeight - document.getElementById('nav').clientHeight - document.getElementById('extra_nav').clientHeight  + 'px';
-$('#scrl').css('height', h);
-$('#order_list').css('height', h, 'important');
+  if (document.getElementById('extra_nav') && document.getElementById('nav')){
+    var h = window.innerHeight - document.getElementById('foo').clientHeight - document.getElementById('nav').clientHeight - document.getElementById('extra_nav').clientHeight  + 'px';
+    $('#scrl').css('height', h);
+    $('#order_list').css('height', h, 'important');
+  }
 }
