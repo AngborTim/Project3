@@ -91,7 +91,7 @@
               {% endif %}
              </th>
              <th>
-               <button type="button" data-order_id="{{order.order_id}}" data-user_id="{{user.id}}" id="checkout" name="checkout" class="btn btn-success">Checkout</button>
+               <button type="button" data-order_id="{{order.pk}}" data-user_id="{{user.id}}" id="checkout" name="checkout" class="btn btn-success">Checkout</button>
              </th>
           </tr>
 
@@ -99,7 +99,7 @@
           {% for item in current_order_list  %}
           <tr id="item-{{ item.pk }}" class="item_block">
             <td>
-              <button type="button" class="close delete_item" data-item_id="{{ item.pk }}"  data-order_id = "{{item.order_id.order_id}}">
+              <button type="button" class="close delete_item" data-item_id="{{ item.pk }}"  data-order_id = "{{item.order_id.pk}}">
                 <span title="Delete an item">&times;</span>
               </button>
             </td>

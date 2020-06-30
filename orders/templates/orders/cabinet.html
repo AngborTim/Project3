@@ -11,12 +11,14 @@
   <li class="nav-item" role="presentation">
     <a class="nav-link {% if basket %}show active{% endif%}" id="cart_tab" data-toggle="tab" href="#cart" role="tab">Cart</a>
   </li>
+  {% if not user.is_staff %}
   <li class="nav-item" role="presentation">
     <a class="nav-link {% if not basket %}show active{% endif%}" id="orders_tab" data-toggle="tab" href="#orders" role="tab">Orders</a>
   </li>
+  {% endif %}
   {% if user.is_staff %}
   <li class="nav-item" role="presentation">
-    <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" role="tab">Administrations</a>
+    <a class="nav-link show active" id="admin-tab" data-toggle="tab" href="#admin" role="tab">Administrations</a>
   </li>
   {% endif %}
 
@@ -109,19 +111,23 @@ Your cart is empty
 
 {% endif %}
   </div>
+  {% if not user.is_staff %}
   <div class="tab-pane fade {% if not basket %}show active{% endif%}" id="orders" role="tabpanel">
 
     {% if all_orders %}
       {% for order in all_orders %}
+        {% if order.order_status.orderType != "In basket"%}
         <a href="{% url 'order' order.pk %}">Order ID: {{order.pk}}; Date: {{order.order_date}}; Totall: ${{order.total}} Status: <span class="badge badge-{% if order.order_status.orderType == "Ready" %}success{% else %}secondary{% endif %}">{{order.order_status}}</span></a><br />
+        {% endif %}
       {% endfor %}
     {% else %}
       You have no orders yet
     {% endif %}
   </div>
+  {% endif %}
 
   {% if user.is_staff %}
-  <div class="tab-pane fade" id="admin" role="tabpanel">
+  <div class="tab-pane fade show active" id="admin" role="tabpanel">
     {% if all_users_orders %}
       {% for order in all_users_orders %}
         <a href="{% url 'order' order.pk %}">Order ID: {{order.pk}}; User ID: {{order.user_id}}; Date: {{order.order_date}}; Totall: ${{order.total}} Status: <span class="badge badge-{% if order.order_status.orderType == "Ready" %}success{% elif order.order_status.orderType == "Placed" %}secondary{% else %}warning{% endif %}">{{order.order_status}}</span></a><br />
@@ -129,6 +135,10 @@ Your cart is empty
     {% else %}
       There is no order yet
     {% endif %}
+<hr>
+
+<a href="/admin/orders">Orders administration</a><br />
+<a href="/admin/auth/">Authentication and Authorization administration</a><br />
 
   </div>
   {% endif %}

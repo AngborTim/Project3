@@ -153,15 +153,15 @@ def index(request):
         "user"            : request.user
         }
 
-    if 'order_id' in request.session:
+    #if 'order_id' in request.session:
         # если заказ-корзина начал формироваться то передаем его
         # в index
         # заказ создается при добавлении первого пункта заказа в функции add_to_cart_view
-        c_order = get_order(request, 'show', 'basket', 'nill')
-        if c_order != 'nill':
-            context['total'] = c_order.total
-            context['order'] = c_order
-            context['current_order_list'] = OrderItem.objects.filter(order_id=c_order)
+    c_order = get_order(request, 'show', 'basket', 'nill')
+    if c_order != 'nill':
+        context['total'] = c_order.total
+        context['order'] = c_order
+        context['current_order_list'] = OrderItem.objects.filter(order_id=c_order)
 
     return render(request, "orders/index.html", context)
 
@@ -211,7 +211,7 @@ def order_placing_view(request):
         new_type = OrderStatus.objects.get(orderType='Placed')
         order.order_status = new_type
         order.save()
-    del request.session['order_id']
+        #del request.session['order_id']
 
     return HttpResponseRedirect(reverse("cabinet"))
 
